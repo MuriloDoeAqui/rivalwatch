@@ -23,10 +23,10 @@ export function AppShell() {
             </div>
 
             <nav className="hidden items-center gap-1 sm:flex">
-              <NavLink to="/" end className={({ isActive }) => navLinkClassName(isActive)}>
+              <NavLink to="/app" end className={({ isActive }) => navLinkClassName(isActive)}>
                 Dashboard
               </NavLink>
-              <NavLink to="/reports" className={({ isActive }) => navLinkClassName(isActive)}>
+              <NavLink to="/app/reports" className={({ isActive }) => navLinkClassName(isActive)}>
                 Reports
               </NavLink>
             </nav>
@@ -44,10 +44,10 @@ export function AppShell() {
         </div>
 
         <nav className="mx-auto flex max-w-6xl gap-2 px-6 pb-3 sm:hidden">
-          <NavLink to="/" end className={({ isActive }) => navLinkClassName(isActive)}>
+          <NavLink to="/app" end className={({ isActive }) => navLinkClassName(isActive)}>
             Dashboard
           </NavLink>
-          <NavLink to="/reports" className={({ isActive }) => navLinkClassName(isActive)}>
+          <NavLink to="/app/reports" className={({ isActive }) => navLinkClassName(isActive)}>
             Reports
           </NavLink>
         </nav>

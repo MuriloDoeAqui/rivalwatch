@@ -8,45 +8,87 @@ export type CompetitorRow = {
   created_at: string;
 };
 
-export async function listCompetitors() {
+// =========================
+// LISTAR (FILTRADO POR USER)
+// =========================
+export async function listCompetitors(userId: string) {
   const { data, error } = await supabase
     .from('competitors')
     .select('id,user_id,name,website,created_at')
+    .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
+
   return (data ?? []) as CompetitorRow[];
 }
 
-export async function createCompetitor(params: { userId: string; name: string; website: string }) {
+// =========================
+// CRIAR
+// =========================
+export async function createCompetitor(params: {
+  userId: string;
+  name: string;
+  website: string;
+}) {
   const { data, error } = await supabase
     .from('competitors')
-    .insert({ user_id: params.userId, name: params.name, website: params.website })
+    .insert({
+      user_id: params.userId,
+      name: params.name,
+      website: params.website,
+    })
     .select('id,user_id,name,website,created_at')
     .single();
 
   if (error) throw error;
+
   return data as CompetitorRow;
 }
 
-export async function deleteCompetitor(params: { id: string }) {
-  const { error } = await supabase.from('competitors').delete().eq('id', params.id);
+// =========================
+// DELETAR (SEGURANÇA POR USER)
+// =========================
+export async function deleteCompetitor(params: {
+  id: string;
+  userId: string;
+}) {
+  const { error } = await supabase
+    .from('competitors')
+    .delete()
+    .eq('id', params.id)
+    .eq('user_id', params.userId);
+
   if (error) throw error;
 }
 
-export async function updateCompetitor(params: { id: string; userId: string; name: string; website: string }) {
+// =========================
+// ATUALIZAR (SEGURANÇA POR USER)
+// =========================
+export async function updateCompetitor(params: {
+  id: string;
+  userId: string;
+  name: string;
+  website: string;
+}) {
   const { data, error } = await supabase
     .from('competitors')
-    .update({ name: params.name, website: params.website })
+    .update({
+      name: params.name,
+      website: params.website,
+    })
     .eq('id', params.id)
     .eq('user_id', params.userId)
     .select('id,user_id,name,website,created_at')
     .maybeSingle();
 
   if (error) throw error;
+
   if (!data) {
-    throw new Error('Não foi possível atualizar este concorrente. Verifique permissões (RLS) e se o item ainda existe.');
+    throw new Error(
+      'Não foi possível atualizar. Verifique permissões ou se o item existe.'
+    );
   }
+
   return data as CompetitorRow;
 }
-

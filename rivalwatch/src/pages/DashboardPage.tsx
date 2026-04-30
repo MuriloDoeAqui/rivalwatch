@@ -92,24 +92,24 @@ export function DashboardPage() {
         </p>
       </div>
 
-      {/* CARDS SAAS */}
+      {/* CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-        <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
+        <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
           <p className="text-xs text-zinc-400">Concorrentes</p>
           <h2 className="text-3xl font-bold mt-2">
             {isLoading ? '...' : items.length}
           </h2>
         </div>
 
-        <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
+        <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
           <p className="text-xs text-zinc-400">Últimos adicionados</p>
           <h2 className="text-3xl font-bold mt-2">
-            {isLoading ? '...' : reports.lastAdded.length}
+            {isLoading ? '...' : reports?.lastAdded?.length ?? 0}
           </h2>
         </div>
 
-        <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
+        <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
           <p className="text-xs text-zinc-400">Status</p>
           <h2 className="text-3xl font-bold mt-2 text-green-400">
             Ativo
@@ -146,29 +146,38 @@ export function DashboardPage() {
       </Modal>
 
       {/* LISTA */}
-      <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
 
-        <h2 className="text-sm font-semibold mb-4">Seus concorrentes</h2>
+        <h2 className="text-sm font-semibold mb-4">
+          Seus concorrentes
+        </h2>
 
         {isLoading ? (
           <p className="text-sm text-zinc-400">Carregando...</p>
         ) : items.length === 0 ? (
-          <p className="text-sm text-zinc-500">Nenhum concorrente ainda</p>
+          <p className="text-sm text-zinc-500">
+            Nenhum concorrente ainda
+          </p>
         ) : (
           <div className="space-y-3">
+
             {items.map((c) => (
               <div
                 key={c.id}
-                className="flex items-center justify-between border border-zinc-900 rounded-lg p-3"
+                className="flex items-center justify-between rounded-lg border border-zinc-800 p-3"
               >
+
+                {/* INFO */}
                 <div>
                   <p className="font-medium">{c.name}</p>
                   <p className="text-xs text-zinc-500">{c.website}</p>
                 </div>
 
-                <div className="flex gap-2">
+                {/* BOTÕES (FIXADOS VISÍVEIS) */}
+                <div className="flex items-center gap-2">
+
                   <a
-                    className="text-sm text-indigo-300"
+                    className="text-sm text-indigo-400 hover:text-indigo-300"
                     href={c.website}
                     target="_blank"
                   >
@@ -180,7 +189,10 @@ export function DashboardPage() {
                     onClick={() =>
                       setEditing({
                         id: c.id,
-                        values: { name: c.name, website: c.website },
+                        values: {
+                          name: c.name,
+                          website: c.website,
+                        },
                       })
                     }
                   >
@@ -191,11 +203,14 @@ export function DashboardPage() {
                     variant="danger"
                     onClick={() => void onDelete(c.id)}
                   >
-                    Deletar
+                    Excluir
                   </Button>
+
                 </div>
+
               </div>
             ))}
+
           </div>
         )}
       </div>

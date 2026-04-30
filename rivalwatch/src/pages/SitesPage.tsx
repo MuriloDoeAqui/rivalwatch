@@ -3,10 +3,12 @@ import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { useToast } from '../components/ui/Toast';
 import { useSites } from '../hooks/useSites';
+import { useCompetitors } from '../hooks/useCompetitors';
 
 type SiteFormValues = {
   name: string;
   url: string;
+  competitorId: string | null;
 };
 
 export function SitesPage() {
@@ -20,6 +22,8 @@ export function SitesPage() {
     update,
   } = useSites();
 
+  const { items: competitors } = useCompetitors();
+
   const { push } = useToast();
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -31,6 +35,7 @@ export function SitesPage() {
   const [form, setForm] = useState<SiteFormValues>({
     name: '',
     url: '',
+    competitorId: null,
   });
 
   useEffect(() => {
@@ -47,15 +52,19 @@ export function SitesPage() {
     setForm({
       name: '',
       url: '',
+      competitorId: null,
     });
   };
 
-  // ✅ CREATE
+  // =========================
+  // CREATE
+  // =========================
   const onCreate = async () => {
     try {
       await create({
         name: form.name,
         url: form.url,
+        competitorId: form.competitorId,
       });
 
       push({ variant: 'success', title: 'Site criado' });
@@ -64,7 +73,9 @@ export function SitesPage() {
     } catch {}
   };
 
-  // ✅ UPDATE
+  // =========================
+  // UPDATE
+  // =========================
   const onEdit = async () => {
     if (!editing) return;
 
@@ -73,6 +84,7 @@ export function SitesPage() {
         id: editing.id,
         name: form.name,
         url: form.url,
+        competitorId: form.competitorId,
       });
 
       push({ variant: 'success', title: 'Atualizado' });
@@ -114,8 +126,14 @@ export function SitesPage() {
             >
               <div className="min-w-0">
                 <p className="font-medium truncate">{s.name}</p>
+
                 <p className="text-xs text-zinc-500 truncate">
                   {s.url}
+                </p>
+
+                {/* 🔥 CONCORRENTE */}
+                <p className="text-xs text-indigo-400 mt-1">
+                  {s.competitors?.name ?? 'Sem concorrente'}
                 </p>
               </div>
 
@@ -138,12 +156,14 @@ export function SitesPage() {
                       values: {
                         name: s.name,
                         url: s.url,
+                        competitorId: s.competitor_id ?? null,
                       },
                     });
 
                     setForm({
                       name: s.name,
                       url: s.url,
+                      competitorId: s.competitor_id ?? null,
                     });
                   }}
                 >
@@ -188,6 +208,26 @@ export function SitesPage() {
           }
         />
 
+        {/* 🔥 SELECT CONCORRENTE */}
+        <select
+          className="input mt-2"
+          value={form.competitorId ?? ''}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              competitorId: e.target.value || null,
+            })
+          }
+        >
+          <option value="">Sem concorrente</option>
+
+          {competitors.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+
         <Button className="mt-4 w-full" onClick={onCreate}>
           Salvar
         </Button>
@@ -216,6 +256,25 @@ export function SitesPage() {
             setForm({ ...form, url: e.target.value })
           }
         />
+
+        <select
+          className="input mt-2"
+          value={form.competitorId ?? ''}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              competitorId: e.target.value || null,
+            })
+          }
+        >
+          <option value="">Sem concorrente</option>
+
+          {competitors.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
 
         <Button className="mt-4 w-full" onClick={onEdit}>
           Atualizar

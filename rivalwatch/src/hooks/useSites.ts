@@ -25,7 +25,9 @@ export function useSites() {
 
   const [isMutating, setIsMutating] = useState(false);
 
+  // =========================
   // LISTAR
+  // =========================
   const refresh = useCallback(async () => {
     if (!user?.id) return;
 
@@ -52,9 +54,15 @@ export function useSites() {
     void refresh();
   }, [refresh]);
 
-  // CREATE (CORRIGIDO: url, não website)
+  // =========================
+  // CREATE 🔥 COM competitorId
+  // =========================
   const create = useCallback(
-    async (values: { name: string; url: string }) => {
+    async (values: {
+      name: string;
+      url: string;
+      competitorId: string | null;
+    }) => {
       if (!user?.id) return;
 
       setIsMutating(true);
@@ -63,7 +71,9 @@ export function useSites() {
       try {
         const created = await createSite({
           userId: user.id,
-          ...values,
+          name: values.name,
+          url: values.url,
+          competitorId: values.competitorId,
         });
 
         setState((s) => ({
@@ -83,7 +93,9 @@ export function useSites() {
     [user?.id]
   );
 
+  // =========================
   // DELETE
+  // =========================
   const remove = useCallback(
     async (id: string) => {
       if (!user?.id) return;
@@ -111,9 +123,16 @@ export function useSites() {
     [user?.id]
   );
 
-  // UPDATE (CORRIGIDO: url, não website)
+  // =========================
+  // UPDATE 🔥 COM competitorId
+  // =========================
   const update = useCallback(
-    async (values: { id: string; name: string; url: string }) => {
+    async (values: {
+      id: string;
+      name: string;
+      url: string;
+      competitorId: string | null;
+    }) => {
       if (!user?.id) return;
 
       setIsMutating(true);
@@ -121,7 +140,10 @@ export function useSites() {
 
       try {
         const updated = await updateSite({
-          ...values,
+          id: values.id,
+          name: values.name,
+          url: values.url,
+          competitorId: values.competitorId,
           userId: user.id,
         });
 
@@ -144,6 +166,9 @@ export function useSites() {
     [user?.id]
   );
 
+  // =========================
+  // MÉTRICAS
+  // =========================
   const reports = useMemo(() => {
     return {
       total: state.items.length,
@@ -155,6 +180,7 @@ export function useSites() {
     sites: state.items,
     isLoading: state.isLoading,
     error: state.error,
+
     isMutating,
     refresh,
     create,

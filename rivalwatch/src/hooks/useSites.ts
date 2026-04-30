@@ -25,9 +25,7 @@ export function useSites() {
 
   const [isMutating, setIsMutating] = useState(false);
 
-  // =========================
   // LISTAR
-  // =========================
   const refresh = useCallback(async () => {
     if (!user?.id) return;
 
@@ -51,14 +49,12 @@ export function useSites() {
   }, [user?.id]);
 
   useEffect(() => {
-    refresh();
+    void refresh();
   }, [refresh]);
 
-  // =========================
-  // CREATE
-  // =========================
+  // CREATE (CORRIGIDO: url, não website)
   const create = useCallback(
-    async (values: { name: string; website: string }) => {
+    async (values: { name: string; url: string }) => {
       if (!user?.id) return;
 
       setIsMutating(true);
@@ -87,9 +83,7 @@ export function useSites() {
     [user?.id]
   );
 
-  // =========================
   // DELETE
-  // =========================
   const remove = useCallback(
     async (id: string) => {
       if (!user?.id) return;
@@ -117,11 +111,9 @@ export function useSites() {
     [user?.id]
   );
 
-  // =========================
-  // UPDATE
-  // =========================
+  // UPDATE (CORRIGIDO: url, não website)
   const update = useCallback(
-    async (values: { id: string; name: string; website: string }) => {
+    async (values: { id: string; name: string; url: string }) => {
       if (!user?.id) return;
 
       setIsMutating(true);
@@ -152,9 +144,6 @@ export function useSites() {
     [user?.id]
   );
 
-  // =========================
-  // MÉTRICAS SAAS
-  // =========================
   const reports = useMemo(() => {
     return {
       total: state.items.length,
@@ -163,10 +152,9 @@ export function useSites() {
   }, [state.items]);
 
   return {
-    sites: state.items, // 👈 isso resolve seu erro do Dashboard
+    sites: state.items,
     isLoading: state.isLoading,
     error: state.error,
-
     isMutating,
     refresh,
     create,

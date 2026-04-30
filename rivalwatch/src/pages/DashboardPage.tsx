@@ -6,15 +6,14 @@ import { Modal } from '../components/ui/Modal';
 import { useToast } from '../components/ui/Toast';
 import { useCompetitors } from '../hooks/useCompetitors';
 
-function formatDate(iso?: string) {
-  if (!iso) return '—';
+function formatDate(iso: string) {
   try {
     return new Intl.DateTimeFormat('pt-BR', {
       dateStyle: 'medium',
       timeStyle: 'short',
     }).format(new Date(iso));
   } catch {
-    return '—';
+    return iso;
   }
 }
 
@@ -46,26 +45,31 @@ export function DashboardPage() {
     });
   }, [error, push]);
 
-  // 📊 INSIGHTS
+  // =========================
+  // INSIGHTS SAAS
+  // =========================
   const insights = useMemo(() => {
     const total = items.length;
 
     const lastAdded = items[0];
+    const lastAddedText = lastAdded
+      ? `Último: ${lastAdded.name}`
+      : 'Nenhum ainda';
 
     const weekCount = items.filter((c) => {
       const created = new Date(c.created_at);
       const now = new Date();
-      return now.getTime() - created.getTime() < 7 * 24 * 60 * 60 * 1000;
+      const diff = now.getTime() - created.getTime();
+      return diff < 7 * 24 * 60 * 60 * 1000;
     }).length;
 
     return {
       total,
+      lastAddedText,
       weekCount,
-      lastAddedText: lastAdded ? lastAdded.name : 'Nenhum ainda',
     };
   }, [items]);
 
-  // CREATE
   const onCreate = async (values: CompetitorFormValues) => {
     try {
       await create(values);
@@ -80,7 +84,6 @@ export function DashboardPage() {
     }
   };
 
-  // UPDATE
   const onEdit = async (values: CompetitorFormValues) => {
     if (!editing) return;
 
@@ -97,7 +100,6 @@ export function DashboardPage() {
     }
   };
 
-  // DELETE
   const onDelete = async (id: string) => {
     try {
       await remove(id);
@@ -140,22 +142,33 @@ export function DashboardPage() {
         </div>
 
         <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
-          <p className="text-xs text-zinc-400">Último adicionado</p>
-          <h2 className="text-sm font-semibold mt-2">
+          <p className="text-xs text-zinc-400">Última atividade</p>
+          <h2 className="text-sm font-semibold mt-2 text-zinc-200">
             {isLoading ? '...' : insights.lastAddedText}
           </h2>
         </div>
 
       </div>
 
-      {/* BOTÃO */}
+      {/* INSIGHTS RÁPIDOS */}
+      <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
+        <h2 className="text-sm font-semibold mb-3">Insights rápidos</h2>
+
+        <ul className="text-sm text-zinc-400 space-y-2">
+          <li>• Você está monitorando {insights.total} concorrentes</li>
+          <li>• Atividade nos últimos 7 dias: {insights.weekCount}</li>
+          <li>• Sistema funcionando normalmente</li>
+        </ul>
+      </div>
+
+      {/* AÇÕES */}
       <div className="flex justify-end">
         <Button onClick={() => setCreateOpen(true)} disabled={isMutating}>
-          + Adicionar concorrente
+          + Novo concorrente
         </Button>
       </div>
 
-      {/* MODAL CREATE */}
+      {/* MODAIS */}
       <Modal
         title="Adicionar concorrente"
         isOpen={createOpen}
@@ -169,7 +182,6 @@ export function DashboardPage() {
         />
       </Modal>
 
-      {/* MODAL EDIT */}
       <Modal
         title="Editar concorrente"
         isOpen={!!editing}
@@ -190,9 +202,7 @@ export function DashboardPage() {
         {isLoading ? (
           <p className="text-sm text-zinc-400">Carregando...</p>
         ) : items.length === 0 ? (
-          <p className="text-sm text-zinc-500">
-            Nenhum concorrente ainda
-          </p>
+          <p className="text-sm text-zinc-500">Nenhum concorrente ainda</p>
         ) : (
           items.map((c) => (
             <div
@@ -203,9 +213,7 @@ export function DashboardPage() {
               {/* INFO */}
               <div className="min-w-0 flex-1">
                 <p className="font-medium truncate">{c.name}</p>
-                <p className="text-xs text-zinc-500 truncate">
-                  {c.website}
-                </p>
+                <p className="text-xs text-zinc-500 truncate">{c.website}</p>
               </div>
 
               {/* BOTÕES */}
@@ -243,6 +251,7 @@ export function DashboardPage() {
                 </Button>
 
               </div>
+
             </div>
           ))
         )}

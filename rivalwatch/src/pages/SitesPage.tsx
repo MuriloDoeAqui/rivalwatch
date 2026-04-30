@@ -6,7 +6,7 @@ import { useSites } from '../hooks/useSites';
 
 type SiteFormValues = {
   name: string;
-  website: string;
+  url: string;
 };
 
 export function SitesPage() {
@@ -30,11 +30,12 @@ export function SitesPage() {
 
   const [form, setForm] = useState<SiteFormValues>({
     name: '',
-    website: '',
+    url: '',
   });
 
   useEffect(() => {
     if (!error) return;
+
     push({
       variant: 'error',
       title: 'Erro',
@@ -43,23 +44,37 @@ export function SitesPage() {
   }, [error, push]);
 
   const resetForm = () => {
-    setForm({ name: '', website: '' });
+    setForm({
+      name: '',
+      url: '',
+    });
   };
 
+  // ✅ CREATE
   const onCreate = async () => {
     try {
-      await create(form);
+      await create({
+        name: form.name,
+        url: form.url,
+      });
+
       push({ variant: 'success', title: 'Site criado' });
       setCreateOpen(false);
       resetForm();
     } catch {}
   };
 
+  // ✅ UPDATE
   const onEdit = async () => {
     if (!editing) return;
 
     try {
-      await update({ id: editing.id, ...form });
+      await update({
+        id: editing.id,
+        name: form.name,
+        url: form.url,
+      });
+
       push({ variant: 'success', title: 'Atualizado' });
       setEditing(null);
       resetForm();
@@ -79,7 +94,7 @@ export function SitesPage() {
 
       {/* BOTÃO */}
       <div className="flex justify-end">
-        <Button onClick={() => setCreateOpen(true)}>
+        <Button onClick={() => setCreateOpen(true)} disabled={isMutating}>
           + Novo site
         </Button>
       </div>
@@ -97,12 +112,14 @@ export function SitesPage() {
               key={s.id}
               className="flex items-center justify-between border border-zinc-900 p-3 rounded-lg"
             >
-              <div>
-                <p className="font-medium">{s.name}</p>
-                <p className="text-xs text-zinc-500">{s.url}</p>
+              <div className="min-w-0">
+                <p className="font-medium truncate">{s.name}</p>
+                <p className="text-xs text-zinc-500 truncate">
+                  {s.url}
+                </p>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
 
                 <a
                   href={s.url}
@@ -120,12 +137,13 @@ export function SitesPage() {
                       id: s.id,
                       values: {
                         name: s.name,
-                        website: s.url,
+                        url: s.url,
                       },
                     });
+
                     setForm({
                       name: s.name,
-                      website: s.url,
+                      url: s.url,
                     });
                   }}
                 >
@@ -164,9 +182,9 @@ export function SitesPage() {
         <input
           placeholder="URL"
           className="input mt-2"
-          value={form.website}
+          value={form.url}
           onChange={(e) =>
-            setForm({ ...form, website: e.target.value })
+            setForm({ ...form, url: e.target.value })
           }
         />
 
@@ -193,9 +211,9 @@ export function SitesPage() {
         <input
           placeholder="URL"
           className="input mt-2"
-          value={form.website}
+          value={form.url}
           onChange={(e) =>
-            setForm({ ...form, website: e.target.value })
+            setForm({ ...form, url: e.target.value })
           }
         />
 

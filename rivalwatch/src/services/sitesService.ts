@@ -26,7 +26,7 @@ export async function listSites(userId: string) {
       url,
       competitor_id,
       created_at,
-      competitors (
+      competitors:competitors (
         id,
         name
       )
@@ -36,7 +36,6 @@ export async function listSites(userId: string) {
 
   if (error) throw error;
 
-  // 🔥 NORMALIZAÇÃO DO JOIN (resolve erro do TS)
   const normalized = (data ?? []).map((item: any) => ({
     ...item,
     competitors: Array.isArray(item.competitors)
@@ -64,17 +63,31 @@ export async function createSite(params: {
       url: params.url,
       competitor_id: params.competitorId,
     })
-    .select()
+    .select(`
+      id,
+      user_id,
+      name,
+      url,
+      competitor_id,
+      created_at
+    `)
     .single();
 
   if (error) throw error;
-  return data as SiteRow;
+
+  return {
+    ...data,
+    competitors: null, // evita undefined no frontend
+  } as SiteRow;
 }
 
 // =========================
 // DELETE
 // =========================
-export async function deleteSite(params: { id: string; userId: string }) {
+export async function deleteSite(params: {
+  id: string;
+  userId: string;
+}) {
   const { error } = await supabase
     .from('sites')
     .delete()
@@ -103,9 +116,20 @@ export async function updateSite(params: {
     })
     .eq('id', params.id)
     .eq('user_id', params.userId)
-    .select()
+    .select(`
+      id,
+      user_id,
+      name,
+      url,
+      competitor_id,
+      created_at
+    `)
     .single();
 
   if (error) throw error;
-  return data as SiteRow;
+
+  return {
+    ...data,
+    competitors: null, // mantém padrão
+  } as SiteRow;
 }

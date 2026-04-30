@@ -29,7 +29,10 @@ export function useSites() {
   // LISTAR
   // =========================
   const refresh = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setState((s) => ({ ...s, isLoading: false }));
+      return;
+    }
 
     setState((s) => ({ ...s, isLoading: true, error: null }));
 
@@ -42,20 +45,21 @@ export function useSites() {
         error: null,
       });
     } catch (err) {
-      setState((s) => ({
-        ...s,
+      setState({
+        items: [],
         isLoading: false,
-        error: err instanceof Error ? err.message : 'Erro ao carregar sites',
-      }));
+        error:
+          err instanceof Error ? err.message : 'Erro ao carregar sites',
+      });
     }
-  }, [user?.id]);
+  }, [user]);
 
   useEffect(() => {
-    void refresh();
+    refresh();
   }, [refresh]);
 
   // =========================
-  // CREATE 🔥 COM competitorId
+  // CREATE
   // =========================
   const create = useCallback(
     async (values: {
@@ -66,7 +70,6 @@ export function useSites() {
       if (!user?.id) return;
 
       setIsMutating(true);
-      setState((s) => ({ ...s, error: null }));
 
       try {
         const created = await createSite({
@@ -80,17 +83,20 @@ export function useSites() {
           ...s,
           items: [created, ...s.items],
         }));
+
+        return created;
       } catch (err) {
         setState((s) => ({
           ...s,
-          error: err instanceof Error ? err.message : 'Erro ao criar site',
+          error:
+            err instanceof Error ? err.message : 'Erro ao criar site',
         }));
         throw err;
       } finally {
         setIsMutating(false);
       }
     },
-    [user?.id]
+    [user]
   );
 
   // =========================
@@ -101,7 +107,6 @@ export function useSites() {
       if (!user?.id) return;
 
       setIsMutating(true);
-      setState((s) => ({ ...s, error: null }));
 
       try {
         await deleteSite({ id, userId: user.id });
@@ -113,18 +118,19 @@ export function useSites() {
       } catch (err) {
         setState((s) => ({
           ...s,
-          error: err instanceof Error ? err.message : 'Erro ao deletar site',
+          error:
+            err instanceof Error ? err.message : 'Erro ao deletar site',
         }));
         throw err;
       } finally {
         setIsMutating(false);
       }
     },
-    [user?.id]
+    [user]
   );
 
   // =========================
-  // UPDATE 🔥 COM competitorId
+  // UPDATE
   // =========================
   const update = useCallback(
     async (values: {
@@ -136,15 +142,14 @@ export function useSites() {
       if (!user?.id) return;
 
       setIsMutating(true);
-      setState((s) => ({ ...s, error: null }));
 
       try {
         const updated = await updateSite({
           id: values.id,
+          userId: user.id,
           name: values.name,
           url: values.url,
           competitorId: values.competitorId,
-          userId: user.id,
         });
 
         setState((s) => ({
@@ -153,17 +158,22 @@ export function useSites() {
             i.id === updated.id ? updated : i
           ),
         }));
+
+        return updated;
       } catch (err) {
         setState((s) => ({
           ...s,
-          error: err instanceof Error ? err.message : 'Erro ao atualizar site',
+          error:
+            err instanceof Error
+              ? err.message
+              : 'Erro ao atualizar site',
         }));
         throw err;
       } finally {
         setIsMutating(false);
       }
     },
-    [user?.id]
+    [user]
   );
 
   // =========================

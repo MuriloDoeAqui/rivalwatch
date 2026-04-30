@@ -60,6 +60,14 @@ export function SitesPage() {
   // CREATE
   // =========================
   const onCreate = async () => {
+    if (!form.name || !form.url) {
+      push({
+        variant: 'error',
+        title: 'Preencha todos os campos',
+      });
+      return;
+    }
+
     try {
       await create({
         name: form.name,
@@ -78,6 +86,14 @@ export function SitesPage() {
   // =========================
   const onEdit = async () => {
     if (!editing) return;
+
+    if (!form.name || !form.url) {
+      push({
+        variant: 'error',
+        title: 'Preencha todos os campos',
+      });
+      return;
+    }
 
     try {
       await update({
@@ -106,7 +122,10 @@ export function SitesPage() {
 
       {/* BOTÃO */}
       <div className="flex justify-end">
-        <Button onClick={() => setCreateOpen(true)} disabled={isMutating}>
+        <Button
+          onClick={() => setCreateOpen(true)}
+          disabled={isMutating}
+        >
           + Novo site
         </Button>
       </div>
@@ -172,6 +191,7 @@ export function SitesPage() {
 
                 <Button
                   variant="danger"
+                  disabled={isMutating}
                   onClick={() => remove(s.id)}
                 >
                   Deletar
@@ -188,7 +208,10 @@ export function SitesPage() {
       <Modal
         title="Novo site"
         isOpen={createOpen}
-        onClose={() => setCreateOpen(false)}
+        onClose={() => {
+          setCreateOpen(false);
+          resetForm();
+        }}
       >
         <input
           placeholder="Nome"
@@ -208,7 +231,6 @@ export function SitesPage() {
           }
         />
 
-        {/* 🔥 SELECT CONCORRENTE */}
         <select
           className="input mt-2"
           value={form.competitorId ?? ''}
@@ -228,7 +250,11 @@ export function SitesPage() {
           ))}
         </select>
 
-        <Button className="mt-4 w-full" onClick={onCreate}>
+        <Button
+          className="mt-4 w-full"
+          onClick={onCreate}
+          disabled={isMutating}
+        >
           Salvar
         </Button>
       </Modal>
@@ -237,7 +263,10 @@ export function SitesPage() {
       <Modal
         title="Editar site"
         isOpen={!!editing}
-        onClose={() => setEditing(null)}
+        onClose={() => {
+          setEditing(null);
+          resetForm();
+        }}
       >
         <input
           placeholder="Nome"
@@ -276,7 +305,11 @@ export function SitesPage() {
           ))}
         </select>
 
-        <Button className="mt-4 w-full" onClick={onEdit}>
+        <Button
+          className="mt-4 w-full"
+          onClick={onEdit}
+          disabled={isMutating}
+        >
           Atualizar
         </Button>
       </Modal>

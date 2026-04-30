@@ -46,11 +46,13 @@ export function useSites() {
     void refresh();
   }, [refresh]);
 
+  // 🔥 CREATE
   const create = useCallback(
-    async (values: { name: string; url: string }) => {
+    async (values: { name: string; website: string }) => {
       if (!user) return;
 
       setIsMutating(true);
+
       try {
         const created = await createSite({
           userId: user.id,
@@ -68,13 +70,16 @@ export function useSites() {
     [user]
   );
 
+  // 🔥 DELETE
   const remove = useCallback(
     async (id: string) => {
       if (!user) return;
 
       setIsMutating(true);
+
       try {
         await deleteSite({ id, userId: user.id });
+
         setState((s) => ({
           ...s,
           items: s.items.filter((i) => i.id !== id),
@@ -86,11 +91,13 @@ export function useSites() {
     [user]
   );
 
+  // 🔥 UPDATE
   const update = useCallback(
-    async (values: { id: string; name: string; url: string }) => {
+    async (values: { id: string; name: string; website: string }) => {
       if (!user) return;
 
       setIsMutating(true);
+
       try {
         const updated = await updateSite({
           ...values,

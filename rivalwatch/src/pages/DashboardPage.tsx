@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Button } from '../components/ui/Button';
 import type { CompetitorFormValues } from '../components/competitors/CompetitorForm';
 import { CompetitorForm } from '../components/competitors/CompetitorForm';
 import { Modal } from '../components/ui/Modal';
 import { useToast } from '../components/ui/Toast';
 import { useCompetitors } from '../hooks/useCompetitors';
+import { useSites } from '../hooks/useSites';
 
 function formatDate(iso: string) {
   try {
@@ -18,6 +19,7 @@ function formatDate(iso: string) {
 }
 
 export function DashboardPage() {
+  // 🔥 concorrentes
   const {
     items,
     isLoading,
@@ -27,6 +29,12 @@ export function DashboardPage() {
     remove,
     update,
   } = useCompetitors();
+
+  // 🌐 sites (NOVO)
+  const {
+    sites,
+    isLoading: sitesLoading,
+  } = useSites();
 
   const { push } = useToast();
 
@@ -45,30 +53,13 @@ export function DashboardPage() {
     });
   }, [error, push]);
 
-  // =========================
-  // INSIGHTS SAAS
-  // =========================
+  // 📊 INSIGHTS
   const insights = useMemo(() => {
-    const total = items.length;
-
-    const lastAdded = items[0];
-    const lastAddedText = lastAdded
-      ? `Último: ${lastAdded.name}`
-      : 'Nenhum ainda';
-
-    const weekCount = items.filter((c) => {
-      const created = new Date(c.created_at);
-      const now = new Date();
-      const diff = now.getTime() - created.getTime();
-      return diff < 7 * 24 * 60 * 60 * 1000;
-    }).length;
-
     return {
-      total,
-      lastAddedText,
-      weekCount,
+      total: items.length,
+      sitesTotal: sites.length,
     };
-  }, [items]);
+  }, [items, sites]);
 
   const onCreate = async (values: CompetitorFormValues) => {
     try {
@@ -120,55 +111,47 @@ export function DashboardPage() {
       <div>
         <h1 className="text-2xl font-bold">RivalWatch Dashboard</h1>
         <p className="text-sm text-zinc-400">
-          Visão inteligente dos seus concorrentes
+          Visão geral do seu SaaS
         </p>
       </div>
 
       {/* MÉTRICAS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
+        {/* concorrentes */}
         <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
-          <p className="text-xs text-zinc-400">Total de concorrentes</p>
+          <p className="text-xs text-zinc-400">Concorrentes</p>
           <h2 className="text-3xl font-bold mt-2">
             {isLoading ? '...' : insights.total}
           </h2>
         </div>
 
+        {/* sites 🔥 NOVO */}
         <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
-          <p className="text-xs text-zinc-400">Nesta semana</p>
-          <h2 className="text-3xl font-bold mt-2 text-indigo-300">
-            {isLoading ? '...' : insights.weekCount}
+          <p className="text-xs text-zinc-400">Sites monitorados</p>
+          <h2 className="text-3xl font-bold mt-2">
+            {sitesLoading ? '...' : insights.sitesTotal}
           </h2>
         </div>
 
+        {/* status */}
         <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
-          <p className="text-xs text-zinc-400">Última atividade</p>
-          <h2 className="text-sm font-semibold mt-2 text-zinc-200">
-            {isLoading ? '...' : insights.lastAddedText}
+          <p className="text-xs text-zinc-400">Status</p>
+          <h2 className="text-3xl font-bold mt-2 text-green-400">
+            Online
           </h2>
         </div>
 
       </div>
 
-      {/* INSIGHTS RÁPIDOS */}
-      <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
-        <h2 className="text-sm font-semibold mb-3">Insights rápidos</h2>
-
-        <ul className="text-sm text-zinc-400 space-y-2">
-          <li>• Você está monitorando {insights.total} concorrentes</li>
-          <li>• Atividade nos últimos 7 dias: {insights.weekCount}</li>
-          <li>• Sistema funcionando normalmente</li>
-        </ul>
-      </div>
-
-      {/* AÇÕES */}
+      {/* BOTÃO */}
       <div className="flex justify-end">
         <Button onClick={() => setCreateOpen(true)} disabled={isMutating}>
           + Novo concorrente
         </Button>
       </div>
 
-      {/* MODAIS */}
+      {/* MODAL CRIAR */}
       <Modal
         title="Adicionar concorrente"
         isOpen={createOpen}
@@ -182,6 +165,7 @@ export function DashboardPage() {
         />
       </Modal>
 
+      {/* MODAL EDITAR */}
       <Modal
         title="Editar concorrente"
         isOpen={!!editing}
@@ -199,62 +183,54 @@ export function DashboardPage() {
       {/* LISTA */}
       <div className="space-y-3">
 
-        {isLoading ? (
-          <p className="text-sm text-zinc-400">Carregando...</p>
-        ) : items.length === 0 ? (
-          <p className="text-sm text-zinc-500">Nenhum concorrente ainda</p>
-        ) : (
-          items.map((c) => (
-            <div
-              key={c.id}
-              className="flex items-center justify-between gap-4 border border-zinc-900 rounded-lg p-3"
-            >
+        {items.map((c) => (
+          <div
+            key={c.id}
+            className="flex items-center justify-between gap-4 border border-zinc-900 rounded-lg p-3"
+          >
+            <div className="min-w-0">
+              <p className="font-medium truncate">{c.name}</p>
+              <p className="text-xs text-zinc-500 truncate">
+                {c.website}
+              </p>
+            </div>
 
-              {/* INFO */}
-              <div className="min-w-0 flex-1">
-                <p className="font-medium truncate">{c.name}</p>
-                <p className="text-xs text-zinc-500 truncate">{c.website}</p>
-              </div>
+            <div className="flex items-center gap-2">
 
-              {/* BOTÕES */}
-              <div className="flex items-center gap-2 shrink-0">
+              <a
+                href={c.website}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-indigo-300"
+              >
+                Abrir
+              </a>
 
-                <a
-                  href={c.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-sm text-indigo-300 hover:text-indigo-200"
-                >
-                  Abrir
-                </a>
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  setEditing({
+                    id: c.id,
+                    values: {
+                      name: c.name,
+                      website: c.website,
+                    },
+                  })
+                }
+              >
+                Editar
+              </Button>
 
-                <Button
-                  variant="secondary"
-                  onClick={() =>
-                    setEditing({
-                      id: c.id,
-                      values: {
-                        name: c.name,
-                        website: c.website,
-                      },
-                    })
-                  }
-                >
-                  Editar
-                </Button>
-
-                <Button
-                  variant="danger"
-                  onClick={() => void onDelete(c.id)}
-                >
-                  Deletar
-                </Button>
-
-              </div>
+              <Button
+                variant="danger"
+                onClick={() => void onDelete(c.id)}
+              >
+                Deletar
+              </Button>
 
             </div>
-          ))
-        )}
+          </div>
+        ))}
 
       </div>
 

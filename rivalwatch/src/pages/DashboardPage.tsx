@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '../components/ui/Button';
 import type { CompetitorFormValues } from '../components/competitors/CompetitorForm';
 import { CompetitorForm } from '../components/competitors/CompetitorForm';
@@ -46,13 +46,33 @@ export function DashboardPage() {
     });
   }, [error, push]);
 
+  // 📊 INSIGHTS SIMPLES (base SaaS)
+  const insights = useMemo(() => {
+    const total = items.length;
+
+    const lastAdded = items[0];
+    const lastAddedText = lastAdded
+      ? `Último: ${lastAdded.name}`
+      : 'Nenhum ainda';
+
+    const weekCount = items.filter((c) => {
+      const created = new Date(c.created_at);
+      const now = new Date();
+      const diff = now.getTime() - created.getTime();
+      return diff < 7 * 24 * 60 * 60 * 1000;
+    }).length;
+
+    return {
+      total,
+      lastAddedText,
+      weekCount,
+    };
+  }, [items]);
+
   const onCreate = async (values: CompetitorFormValues) => {
     try {
       await create(values);
-      push({
-        variant: 'success',
-        title: 'Concorrente adicionado',
-      });
+      push({ variant: 'success', title: 'Concorrente adicionado' });
       setCreateOpen(false);
     } catch (err) {
       push({
@@ -68,10 +88,7 @@ export function DashboardPage() {
 
     try {
       await update({ id: editing.id, ...values });
-      push({
-        variant: 'success',
-        title: 'Atualizado com sucesso',
-      });
+      push({ variant: 'success', title: 'Atualizado com sucesso' });
       setEditing(null);
     } catch (err) {
       push({
@@ -85,10 +102,7 @@ export function DashboardPage() {
   const onDelete = async (id: string) => {
     try {
       await remove(id);
-      push({
-        variant: 'success',
-        title: 'Removido com sucesso',
-      });
+      push({ variant: 'success', title: 'Removido com sucesso' });
     } catch (err) {
       push({
         variant: 'error',
@@ -105,34 +119,45 @@ export function DashboardPage() {
       <div>
         <h1 className="text-2xl font-bold">RivalWatch Dashboard</h1>
         <p className="text-sm text-zinc-400">
-          Monitore seus concorrentes em tempo real
+          Visão inteligente dos seus concorrentes
         </p>
       </div>
 
-      {/* MÉTRICAS */}
+      {/* MÉTRICAS SaaS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
         <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
           <p className="text-xs text-zinc-400">Total de concorrentes</p>
           <h2 className="text-3xl font-bold mt-2">
-            {isLoading ? '...' : reports.total}
+            {isLoading ? '...' : insights.total}
           </h2>
         </div>
 
         <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
-          <p className="text-xs text-zinc-400">Últimos adicionados</p>
-          <h2 className="text-3xl font-bold mt-2">
-            {isLoading ? '...' : reports.lastAdded.length}
+          <p className="text-xs text-zinc-400">Nesta semana</p>
+          <h2 className="text-3xl font-bold mt-2 text-indigo-300">
+            {isLoading ? '...' : insights.weekCount}
           </h2>
         </div>
 
         <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
-          <p className="text-xs text-zinc-400">Status do sistema</p>
-          <h2 className="text-3xl font-bold mt-2 text-green-400">
-            Online
+          <p className="text-xs text-zinc-400">Última atividade</p>
+          <h2 className="text-sm font-semibold mt-2 text-zinc-200">
+            {isLoading ? '...' : insights.lastAddedText}
           </h2>
         </div>
 
+      </div>
+
+      {/* INSIGHTS */}
+      <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
+        <h2 className="text-sm font-semibold mb-3">Insights rápidos</h2>
+
+        <ul className="text-sm text-zinc-400 space-y-2">
+          <li>• Você está monitorando {insights.total} concorrentes</li>
+          <li>• Atividade nos últimos 7 dias: {insights.weekCount}</li>
+          <li>• Sistema em modo ativo</li>
+        </ul>
       </div>
 
       {/* AÇÕES */}
@@ -180,41 +205,28 @@ export function DashboardPage() {
         {isLoading ? (
           <p className="text-sm text-zinc-400">Carregando...</p>
         ) : items.length === 0 ? (
-          <div className="text-center py-10">
-            <p className="text-sm text-zinc-400">
-              Nenhum concorrente ainda
-            </p>
-            <Button className="mt-4" onClick={() => setCreateOpen(true)}>
-              Adicionar primeiro concorrente
-            </Button>
-          </div>
+          <p className="text-sm text-zinc-500">Nenhum concorrente ainda</p>
         ) : (
           <div className="space-y-3">
             {items.map((c) => (
               <div
                 key={c.id}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-zinc-900 rounded-lg p-3"
+                className="flex justify-between border border-zinc-900 rounded-lg p-3"
               >
 
-                {/* INFO */}
-                <div className="min-w-0">
-                  <p className="font-medium truncate">{c.name}</p>
-                  <p className="text-xs text-zinc-500 truncate">
-                    {c.website}
-                  </p>
+                <div>
+                  <p className="font-medium">{c.name}</p>
+                  <p className="text-xs text-zinc-500">{c.website}</p>
                   <p className="text-[10px] text-zinc-600 mt-1">
-                    Criado em {formatDate(c.created_at)}
+                    {formatDate(c.created_at)}
                   </p>
                 </div>
 
-                {/* BOTÕES */}
-                <div className="flex flex-wrap gap-2 shrink-0">
-
+                <div className="flex gap-2 items-center">
                   <a
                     href={c.website}
                     target="_blank"
-                    rel="noreferrer"
-                    className="text-sm text-indigo-300 hover:text-indigo-200"
+                    className="text-sm text-indigo-300"
                   >
                     Abrir
                   </a>

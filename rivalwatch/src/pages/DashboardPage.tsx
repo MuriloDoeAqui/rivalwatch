@@ -19,7 +19,6 @@ function formatDate(iso: string) {
 }
 
 export function DashboardPage() {
-  // 🔥 concorrentes
   const {
     items,
     isLoading,
@@ -30,7 +29,6 @@ export function DashboardPage() {
     update,
   } = useCompetitors();
 
-  // 🌐 sites (NOVO)
   const {
     sites,
     isLoading: sitesLoading,
@@ -53,11 +51,25 @@ export function DashboardPage() {
     });
   }, [error, push]);
 
-  // 📊 INSIGHTS
+  // 🔥 INSIGHTS REAIS
   const insights = useMemo(() => {
+    const total = items.length;
+    const sitesTotal = sites.length;
+
+    const last = items[0];
+
+    const weekCount = items.filter((c) => {
+      const created = new Date(c.created_at);
+      const now = new Date();
+      const diff = now.getTime() - created.getTime();
+      return diff < 7 * 24 * 60 * 60 * 1000;
+    }).length;
+
     return {
-      total: items.length,
-      sitesTotal: sites.length,
+      total,
+      sitesTotal,
+      lastName: last?.name ?? 'Nenhum',
+      weekCount,
     };
   }, [items, sites]);
 
@@ -118,7 +130,6 @@ export function DashboardPage() {
       {/* MÉTRICAS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-        {/* concorrentes */}
         <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
           <p className="text-xs text-zinc-400">Concorrentes</p>
           <h2 className="text-3xl font-bold mt-2">
@@ -126,7 +137,6 @@ export function DashboardPage() {
           </h2>
         </div>
 
-        {/* sites 🔥 NOVO */}
         <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
           <p className="text-xs text-zinc-400">Sites monitorados</p>
           <h2 className="text-3xl font-bold mt-2">
@@ -134,7 +144,6 @@ export function DashboardPage() {
           </h2>
         </div>
 
-        {/* status */}
         <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
           <p className="text-xs text-zinc-400">Status</p>
           <h2 className="text-3xl font-bold mt-2 text-green-400">
@@ -144,6 +153,18 @@ export function DashboardPage() {
 
       </div>
 
+      {/* 🔥 INSIGHTS RÁPIDOS */}
+      <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
+        <h2 className="text-sm font-semibold mb-3">Insights rápidos</h2>
+
+        <ul className="text-sm text-zinc-400 space-y-2">
+          <li>• Você monitora {insights.total} concorrentes</li>
+          <li>• Você tem {insights.sitesTotal} sites cadastrados</li>
+          <li>• {insights.weekCount} concorrentes adicionados nos últimos 7 dias</li>
+          <li>• Último concorrente: {insights.lastName}</li>
+        </ul>
+      </div>
+
       {/* BOTÃO */}
       <div className="flex justify-end">
         <Button onClick={() => setCreateOpen(true)} disabled={isMutating}>
@@ -151,7 +172,7 @@ export function DashboardPage() {
         </Button>
       </div>
 
-      {/* MODAL CRIAR */}
+      {/* MODAIS */}
       <Modal
         title="Adicionar concorrente"
         isOpen={createOpen}
@@ -165,7 +186,6 @@ export function DashboardPage() {
         />
       </Modal>
 
-      {/* MODAL EDITAR */}
       <Modal
         title="Editar concorrente"
         isOpen={!!editing}
@@ -192,6 +212,9 @@ export function DashboardPage() {
               <p className="font-medium truncate">{c.name}</p>
               <p className="text-xs text-zinc-500 truncate">
                 {c.website}
+              </p>
+              <p className="text-[10px] text-zinc-600 mt-1">
+                Criado em {formatDate(c.created_at)}
               </p>
             </div>
 

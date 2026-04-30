@@ -6,14 +6,15 @@ import { Modal } from '../components/ui/Modal';
 import { useToast } from '../components/ui/Toast';
 import { useCompetitors } from '../hooks/useCompetitors';
 
-function formatDate(iso: string) {
+function formatDate(iso?: string) {
+  if (!iso) return '—';
   try {
     return new Intl.DateTimeFormat('pt-BR', {
       dateStyle: 'medium',
       timeStyle: 'short',
     }).format(new Date(iso));
   } catch {
-    return iso;
+    return '—';
   }
 }
 
@@ -26,7 +27,6 @@ export function DashboardPage() {
     create,
     remove,
     update,
-    reports,
   } = useCompetitors();
 
   const { push } = useToast();
@@ -46,29 +46,26 @@ export function DashboardPage() {
     });
   }, [error, push]);
 
-  // 📊 INSIGHTS SIMPLES (base SaaS)
+  // 📊 INSIGHTS
   const insights = useMemo(() => {
     const total = items.length;
 
     const lastAdded = items[0];
-    const lastAddedText = lastAdded
-      ? `Último: ${lastAdded.name}`
-      : 'Nenhum ainda';
 
     const weekCount = items.filter((c) => {
       const created = new Date(c.created_at);
       const now = new Date();
-      const diff = now.getTime() - created.getTime();
-      return diff < 7 * 24 * 60 * 60 * 1000;
+      return now.getTime() - created.getTime() < 7 * 24 * 60 * 60 * 1000;
     }).length;
 
     return {
       total,
-      lastAddedText,
       weekCount,
+      lastAddedText: lastAdded ? lastAdded.name : 'Nenhum ainda',
     };
   }, [items]);
 
+  // CREATE
   const onCreate = async (values: CompetitorFormValues) => {
     try {
       await create(values);
@@ -83,6 +80,7 @@ export function DashboardPage() {
     }
   };
 
+  // UPDATE
   const onEdit = async (values: CompetitorFormValues) => {
     if (!editing) return;
 
@@ -99,6 +97,7 @@ export function DashboardPage() {
     }
   };
 
+  // DELETE
   const onDelete = async (id: string) => {
     try {
       await remove(id);
@@ -123,7 +122,7 @@ export function DashboardPage() {
         </p>
       </div>
 
-      {/* MÉTRICAS SaaS */}
+      {/* MÉTRICAS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
         <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
@@ -141,33 +140,22 @@ export function DashboardPage() {
         </div>
 
         <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
-          <p className="text-xs text-zinc-400">Última atividade</p>
-          <h2 className="text-sm font-semibold mt-2 text-zinc-200">
+          <p className="text-xs text-zinc-400">Último adicionado</p>
+          <h2 className="text-sm font-semibold mt-2">
             {isLoading ? '...' : insights.lastAddedText}
           </h2>
         </div>
 
       </div>
 
-      {/* INSIGHTS */}
-      <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
-        <h2 className="text-sm font-semibold mb-3">Insights rápidos</h2>
-
-        <ul className="text-sm text-zinc-400 space-y-2">
-          <li>• Você está monitorando {insights.total} concorrentes</li>
-          <li>• Atividade nos últimos 7 dias: {insights.weekCount}</li>
-          <li>• Sistema em modo ativo</li>
-        </ul>
-      </div>
-
-      {/* AÇÕES */}
+      {/* BOTÃO */}
       <div className="flex justify-end">
         <Button onClick={() => setCreateOpen(true)} disabled={isMutating}>
-          + Novo concorrente
+          + Adicionar concorrente
         </Button>
       </div>
 
-      {/* MODAIS */}
+      {/* MODAL CREATE */}
       <Modal
         title="Adicionar concorrente"
         isOpen={createOpen}
@@ -181,6 +169,7 @@ export function DashboardPage() {
         />
       </Modal>
 
+      {/* MODAL EDIT */}
       <Modal
         title="Editar concorrente"
         isOpen={!!editing}
@@ -196,69 +185,68 @@ export function DashboardPage() {
       </Modal>
 
       {/* LISTA */}
-      <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
-
-        <h2 className="text-sm font-semibold mb-4">
-          Seus concorrentes
-        </h2>
+      <div className="space-y-3">
 
         {isLoading ? (
           <p className="text-sm text-zinc-400">Carregando...</p>
         ) : items.length === 0 ? (
-          <p className="text-sm text-zinc-500">Nenhum concorrente ainda</p>
+          <p className="text-sm text-zinc-500">
+            Nenhum concorrente ainda
+          </p>
         ) : (
-          <div className="space-y-3">
-            {items.map((c) => (
-              <div
-                key={c.id}
-                className="flex justify-between border border-zinc-900 rounded-lg p-3"
-              >
+          items.map((c) => (
+            <div
+              key={c.id}
+              className="flex items-center justify-between gap-4 border border-zinc-900 rounded-lg p-3"
+            >
 
-                <div>
-                  <p className="font-medium">{c.name}</p>
-                  <p className="text-xs text-zinc-500">{c.website}</p>
-                  <p className="text-[10px] text-zinc-600 mt-1">
-                    {formatDate(c.created_at)}
-                  </p>
-                </div>
+              {/* INFO */}
+              <div className="min-w-0 flex-1">
+                <p className="font-medium truncate">{c.name}</p>
+                <p className="text-xs text-zinc-500 truncate">
+                  {c.website}
+                </p>
+              </div>
 
-                <div className="flex gap-2 items-center">
-                  <a
-                    href={c.website}
-                    target="_blank"
-                    className="text-sm text-indigo-300"
-                  >
-                    Abrir
-                  </a>
+              {/* BOTÕES */}
+              <div className="flex items-center gap-2 shrink-0">
 
-                  <Button
-                    variant="secondary"
-                    onClick={() =>
-                      setEditing({
-                        id: c.id,
-                        values: {
-                          name: c.name,
-                          website: c.website,
-                        },
-                      })
-                    }
-                  >
-                    Editar
-                  </Button>
+                <a
+                  href={c.website}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm text-indigo-300 hover:text-indigo-200"
+                >
+                  Abrir
+                </a>
 
-                  <Button
-                    variant="danger"
-                    onClick={() => void onDelete(c.id)}
-                  >
-                    Deletar
-                  </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() =>
+                    setEditing({
+                      id: c.id,
+                      values: {
+                        name: c.name,
+                        website: c.website,
+                      },
+                    })
+                  }
+                >
+                  Editar
+                </Button>
 
-                </div>
+                <Button
+                  variant="danger"
+                  onClick={() => void onDelete(c.id)}
+                >
+                  Deletar
+                </Button>
 
               </div>
-            ))}
-          </div>
+            </div>
+          ))
         )}
+
       </div>
 
     </div>

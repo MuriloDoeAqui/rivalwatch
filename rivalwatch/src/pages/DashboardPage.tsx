@@ -73,6 +73,19 @@ export function DashboardPage() {
     };
   }, [items, sites]);
 
+  // 🔥 CONTAGEM DE SITES POR CONCORRENTE
+  const sitesByCompetitor = useMemo(() => {
+    const map: Record<string, number> = {};
+
+    sites.forEach((s) => {
+      if (!s.competitor_id) return;
+
+      map[s.competitor_id] = (map[s.competitor_id] || 0) + 1;
+    });
+
+    return map;
+  }, [sites]);
+
   const onCreate = async (values: CompetitorFormValues) => {
     try {
       await create(values);
@@ -153,7 +166,7 @@ export function DashboardPage() {
 
       </div>
 
-      {/* 🔥 INSIGHTS RÁPIDOS */}
+      {/* INSIGHTS */}
       <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
         <h2 className="text-sm font-semibold mb-3">Insights rápidos</h2>
 
@@ -203,57 +216,68 @@ export function DashboardPage() {
       {/* LISTA */}
       <div className="space-y-3">
 
-        {items.map((c) => (
-          <div
-            key={c.id}
-            className="flex items-center justify-between gap-4 border border-zinc-900 rounded-lg p-3"
-          >
-            <div className="min-w-0">
-              <p className="font-medium truncate">{c.name}</p>
-              <p className="text-xs text-zinc-500 truncate">
-                {c.website}
-              </p>
-              <p className="text-[10px] text-zinc-600 mt-1">
-                Criado em {formatDate(c.created_at)}
-              </p>
+        {items.map((c) => {
+          const totalSites = sitesByCompetitor[c.id] || 0;
+
+          return (
+            <div
+              key={c.id}
+              className="flex items-center justify-between gap-4 border border-zinc-900 rounded-lg p-3"
+            >
+              <div className="min-w-0">
+                <p className="font-medium truncate">{c.name}</p>
+
+                <p className="text-xs text-zinc-500 truncate">
+                  {c.website}
+                </p>
+
+                <p className="text-[10px] text-zinc-600 mt-1">
+                  Criado em {formatDate(c.created_at)}
+                </p>
+
+                {/* 🔥 AQUI ESTÁ O VALOR REAL */}
+                <p className="text-xs text-indigo-400 mt-1">
+                  {totalSites} site(s) vinculados
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+
+                <a
+                  href={c.website}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm text-indigo-300"
+                >
+                  Abrir
+                </a>
+
+                <Button
+                  variant="secondary"
+                  onClick={() =>
+                    setEditing({
+                      id: c.id,
+                      values: {
+                        name: c.name,
+                        website: c.website,
+                      },
+                    })
+                  }
+                >
+                  Editar
+                </Button>
+
+                <Button
+                  variant="danger"
+                  onClick={() => void onDelete(c.id)}
+                >
+                  Deletar
+                </Button>
+
+              </div>
             </div>
-
-            <div className="flex items-center gap-2">
-
-              <a
-                href={c.website}
-                target="_blank"
-                rel="noreferrer"
-                className="text-sm text-indigo-300"
-              >
-                Abrir
-              </a>
-
-              <Button
-                variant="secondary"
-                onClick={() =>
-                  setEditing({
-                    id: c.id,
-                    values: {
-                      name: c.name,
-                      website: c.website,
-                    },
-                  })
-                }
-              >
-                Editar
-              </Button>
-
-              <Button
-                variant="danger"
-                onClick={() => void onDelete(c.id)}
-              >
-                Deletar
-              </Button>
-
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
       </div>
 

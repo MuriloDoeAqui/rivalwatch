@@ -25,33 +25,44 @@ export function useSites() {
 
   const [isMutating, setIsMutating] = useState(false);
 
+  // =========================
+  // LISTAR
+  // =========================
   const refresh = useCallback(async () => {
-    if (!user) return;
+    if (!user?.id) return;
 
     setState((s) => ({ ...s, isLoading: true, error: null }));
 
     try {
       const data = await listSites(user.id);
-      setState({ items: data, isLoading: false, error: null });
+
+      setState({
+        items: data,
+        isLoading: false,
+        error: null,
+      });
     } catch (err) {
       setState((s) => ({
         ...s,
         isLoading: false,
-        error: err instanceof Error ? err.message : 'Erro',
+        error: err instanceof Error ? err.message : 'Erro ao carregar sites',
       }));
     }
-  }, [user]);
+  }, [user?.id]);
 
   useEffect(() => {
-    void refresh();
+    refresh();
   }, [refresh]);
 
-  // 🔥 CREATE
+  // =========================
+  // CREATE
+  // =========================
   const create = useCallback(
     async (values: { name: string; website: string }) => {
-      if (!user) return;
+      if (!user?.id) return;
 
       setIsMutating(true);
+      setState((s) => ({ ...s, error: null }));
 
       try {
         const created = await createSite({
@@ -63,19 +74,28 @@ export function useSites() {
           ...s,
           items: [created, ...s.items],
         }));
+      } catch (err) {
+        setState((s) => ({
+          ...s,
+          error: err instanceof Error ? err.message : 'Erro ao criar site',
+        }));
+        throw err;
       } finally {
         setIsMutating(false);
       }
     },
-    [user]
+    [user?.id]
   );
 
-  // 🔥 DELETE
+  // =========================
+  // DELETE
+  // =========================
   const remove = useCallback(
     async (id: string) => {
-      if (!user) return;
+      if (!user?.id) return;
 
       setIsMutating(true);
+      setState((s) => ({ ...s, error: null }));
 
       try {
         await deleteSite({ id, userId: user.id });
@@ -84,19 +104,28 @@ export function useSites() {
           ...s,
           items: s.items.filter((i) => i.id !== id),
         }));
+      } catch (err) {
+        setState((s) => ({
+          ...s,
+          error: err instanceof Error ? err.message : 'Erro ao deletar site',
+        }));
+        throw err;
       } finally {
         setIsMutating(false);
       }
     },
-    [user]
+    [user?.id]
   );
 
-  // 🔥 UPDATE
+  // =========================
+  // UPDATE
+  // =========================
   const update = useCallback(
     async (values: { id: string; name: string; website: string }) => {
-      if (!user) return;
+      if (!user?.id) return;
 
       setIsMutating(true);
+      setState((s) => ({ ...s, error: null }));
 
       try {
         const updated = await updateSite({
@@ -110,13 +139,22 @@ export function useSites() {
             i.id === updated.id ? updated : i
           ),
         }));
+      } catch (err) {
+        setState((s) => ({
+          ...s,
+          error: err instanceof Error ? err.message : 'Erro ao atualizar site',
+        }));
+        throw err;
       } finally {
         setIsMutating(false);
       }
     },
-    [user]
+    [user?.id]
   );
 
+  // =========================
+  // MÉTRICAS SAAS
+  // =========================
   const reports = useMemo(() => {
     return {
       total: state.items.length,
@@ -125,7 +163,10 @@ export function useSites() {
   }, [state.items]);
 
   return {
-    ...state,
+    sites: state.items, // 👈 isso resolve seu erro do Dashboard
+    isLoading: state.isLoading,
+    error: state.error,
+
     isMutating,
     refresh,
     create,

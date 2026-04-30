@@ -109,7 +109,7 @@ export function DashboardPage() {
         </p>
       </div>
 
-      {/* MÉTRICAS SAAS */}
+      {/* MÉTRICAS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
         <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
@@ -170,7 +170,7 @@ export function DashboardPage() {
         />
       </Modal>
 
-      {/* LISTA PRINCIPAL */}
+      {/* LISTA */}
       <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
 
         <h2 className="text-sm font-semibold mb-4">
@@ -184,10 +184,7 @@ export function DashboardPage() {
             <p className="text-sm text-zinc-400">
               Nenhum concorrente ainda
             </p>
-            <Button
-              className="mt-4"
-              onClick={() => setCreateOpen(true)}
-            >
+            <Button className="mt-4" onClick={() => setCreateOpen(true)}>
               Adicionar primeiro concorrente
             </Button>
           </div>
@@ -196,11 +193,13 @@ export function DashboardPage() {
             {items.map((c) => (
               <div
                 key={c.id}
-                className="flex items-center justify-between border border-zinc-900 rounded-lg p-3"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-zinc-900 rounded-lg p-3"
               >
-                <div>
-                  <p className="font-medium">{c.name}</p>
-                  <p className="text-xs text-zinc-500">
+
+                {/* INFO */}
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{c.name}</p>
+                  <p className="text-xs text-zinc-500 truncate">
                     {c.website}
                   </p>
                   <p className="text-[10px] text-zinc-600 mt-1">
@@ -208,11 +207,14 @@ export function DashboardPage() {
                   </p>
                 </div>
 
-                <div className="flex gap-2">
+                {/* BOTÕES */}
+                <div className="flex flex-wrap gap-2 shrink-0">
+
                   <a
                     href={c.website}
                     target="_blank"
-                    className="text-sm text-indigo-300"
+                    rel="noreferrer"
+                    className="text-sm text-indigo-300 hover:text-indigo-200"
                   >
                     Abrir
                   </a>
@@ -238,7 +240,9 @@ export function DashboardPage() {
                   >
                     Deletar
                   </Button>
+
                 </div>
+
               </div>
             ))}
           </div>

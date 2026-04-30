@@ -5,6 +5,7 @@ import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { ReportsPage } from '../pages/ReportsPage';
+import { SitesPage } from '../pages/SitesPage'; // 🔥 NOVO
 import { PrivateRoute } from './PrivateRoute';
 
 export function AppRoutes() {
@@ -24,12 +25,13 @@ export function AppRoutes() {
       >
         <Route index element={<DashboardPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="sites" element={<SitesPage />} /> {/* 🔥 NOVO */}
       </Route>
 
       <Route path="/dashboard" element={<Navigate to="/app" replace />} />
       <Route path="/reports" element={<Navigate to="/app/reports" replace />} />
+      <Route path="/sites" element={<Navigate to="/app/sites" replace />} /> {/* 🔥 NOVO */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
-

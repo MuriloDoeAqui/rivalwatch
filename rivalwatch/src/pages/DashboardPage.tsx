@@ -31,7 +31,7 @@ export function DashboardPage() {
 
   const {
     sites,
-    isLoading: sitesLoading,
+    create: createSite,
   } = useSites();
 
   const { push } = useToast();
@@ -42,6 +42,16 @@ export function DashboardPage() {
     values: CompetitorFormValues;
   } | null>(null);
 
+  // 🔥 NOVO: modal de site
+  const [siteModal, setSiteModal] = useState<{
+    competitorId: string;
+  } | null>(null);
+
+  const [siteForm, setSiteForm] = useState({
+    name: '',
+    url: '',
+  });
+
   useEffect(() => {
     if (!error) return;
     push({
@@ -51,7 +61,6 @@ export function DashboardPage() {
     });
   }, [error, push]);
 
-  // 🔥 INSIGHTS REAIS
   const insights = useMemo(() => {
     const total = items.length;
     const sitesTotal = sites.length;
@@ -61,8 +70,7 @@ export function DashboardPage() {
     const weekCount = items.filter((c) => {
       const created = new Date(c.created_at);
       const now = new Date();
-      const diff = now.getTime() - created.getTime();
-      return diff < 7 * 24 * 60 * 60 * 1000;
+      return now.getTime() - created.getTime() < 7 * 86400000;
     }).length;
 
     return {
@@ -73,60 +81,58 @@ export function DashboardPage() {
     };
   }, [items, sites]);
 
-  // 🔥 CONTAGEM DE SITES POR CONCORRENTE
   const sitesByCompetitor = useMemo(() => {
     const map: Record<string, number> = {};
 
     sites.forEach((s) => {
       if (!s.competitor_id) return;
-
       map[s.competitor_id] = (map[s.competitor_id] || 0) + 1;
     });
 
     return map;
   }, [sites]);
 
-  const onCreate = async (values: CompetitorFormValues) => {
+  // =========================
+  // CREATE SITE 🔥
+  // =========================
+  const handleCreateSite = async () => {
+    if (!siteModal) return;
+
     try {
-      await create(values);
-      push({ variant: 'success', title: 'Concorrente adicionado' });
-      setCreateOpen(false);
+      await createSite({
+        name: siteForm.name,
+        url: siteForm.url,
+        competitorId: siteModal.competitorId,
+      });
+
+      push({ variant: 'success', title: 'Site vinculado!' });
+
+      setSiteModal(null);
+      setSiteForm({ name: '', url: '' });
     } catch (err) {
       push({
         variant: 'error',
-        title: 'Erro ao criar',
-        description: err instanceof Error ? err.message : 'Erro inesperado',
+        title: 'Erro ao criar site',
       });
     }
+  };
+
+  const onCreate = async (values: CompetitorFormValues) => {
+    await create(values);
+    push({ variant: 'success', title: 'Concorrente adicionado' });
+    setCreateOpen(false);
   };
 
   const onEdit = async (values: CompetitorFormValues) => {
     if (!editing) return;
-
-    try {
-      await update({ id: editing.id, ...values });
-      push({ variant: 'success', title: 'Atualizado com sucesso' });
-      setEditing(null);
-    } catch (err) {
-      push({
-        variant: 'error',
-        title: 'Erro ao atualizar',
-        description: err instanceof Error ? err.message : 'Erro inesperado',
-      });
-    }
+    await update({ id: editing.id, ...values });
+    push({ variant: 'success', title: 'Atualizado' });
+    setEditing(null);
   };
 
   const onDelete = async (id: string) => {
-    try {
-      await remove(id);
-      push({ variant: 'success', title: 'Removido com sucesso' });
-    } catch (err) {
-      push({
-        variant: 'error',
-        title: 'Erro ao deletar',
-        description: err instanceof Error ? err.message : 'Erro inesperado',
-      });
-    }
+    await remove(id);
+    push({ variant: 'success', title: 'Removido' });
   };
 
   return (
@@ -141,116 +147,52 @@ export function DashboardPage() {
       </div>
 
       {/* MÉTRICAS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-        <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
-          <p className="text-xs text-zinc-400">Concorrentes</p>
-          <h2 className="text-3xl font-bold mt-2">
-            {isLoading ? '...' : insights.total}
-          </h2>
+      <div className="grid grid-cols-3 gap-4">
+        <div className="card">
+          <p>Concorrentes</p>
+          <h2>{insights.total}</h2>
         </div>
 
-        <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
-          <p className="text-xs text-zinc-400">Sites monitorados</p>
-          <h2 className="text-3xl font-bold mt-2">
-            {sitesLoading ? '...' : insights.sitesTotal}
-          </h2>
+        <div className="card">
+          <p>Sites</p>
+          <h2>{insights.sitesTotal}</h2>
         </div>
 
-        <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
-          <p className="text-xs text-zinc-400">Status</p>
-          <h2 className="text-3xl font-bold mt-2 text-green-400">
-            Online
-          </h2>
+        <div className="card">
+          <p>Status</p>
+          <h2 className="text-green-400">Online</h2>
         </div>
-
       </div>
-
-      {/* INSIGHTS */}
-      <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-5">
-        <h2 className="text-sm font-semibold mb-3">Insights rápidos</h2>
-
-        <ul className="text-sm text-zinc-400 space-y-2">
-          <li>• Você monitora {insights.total} concorrentes</li>
-          <li>• Você tem {insights.sitesTotal} sites cadastrados</li>
-          <li>• {insights.weekCount} concorrentes adicionados nos últimos 7 dias</li>
-          <li>• Último concorrente: {insights.lastName}</li>
-        </ul>
-      </div>
-
-      {/* BOTÃO */}
-      <div className="flex justify-end">
-        <Button onClick={() => setCreateOpen(true)} disabled={isMutating}>
-          + Novo concorrente
-        </Button>
-      </div>
-
-      {/* MODAIS */}
-      <Modal
-        title="Adicionar concorrente"
-        isOpen={createOpen}
-        onClose={() => setCreateOpen(false)}
-      >
-        <CompetitorForm
-          submitLabel="Salvar"
-          isSubmitting={isMutating}
-          onSubmit={onCreate}
-          onCancel={() => setCreateOpen(false)}
-        />
-      </Modal>
-
-      <Modal
-        title="Editar concorrente"
-        isOpen={!!editing}
-        onClose={() => setEditing(null)}
-      >
-        <CompetitorForm
-          initialValues={editing?.values}
-          submitLabel="Atualizar"
-          isSubmitting={isMutating}
-          onSubmit={onEdit}
-          onCancel={() => setEditing(null)}
-        />
-      </Modal>
 
       {/* LISTA */}
       <div className="space-y-3">
-
         {items.map((c) => {
           const totalSites = sitesByCompetitor[c.id] || 0;
 
           return (
             <div
               key={c.id}
-              className="flex items-center justify-between gap-4 border border-zinc-900 rounded-lg p-3"
+              className="flex justify-between border p-3 rounded-lg"
             >
-              <div className="min-w-0">
-                <p className="font-medium truncate">{c.name}</p>
+              <div>
+                <p className="font-medium">{c.name}</p>
+                <p className="text-xs">{c.website}</p>
 
-                <p className="text-xs text-zinc-500 truncate">
-                  {c.website}
-                </p>
-
-                <p className="text-[10px] text-zinc-600 mt-1">
-                  Criado em {formatDate(c.created_at)}
-                </p>
-
-                {/* 🔥 AQUI ESTÁ O VALOR REAL */}
-                <p className="text-xs text-indigo-400 mt-1">
+                <p className="text-xs text-indigo-400">
                   {totalSites} site(s) vinculados
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex gap-2">
 
-                <a
-                  href={c.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-sm text-indigo-300"
+                {/* 🔥 BOTÃO NOVO */}
+                <Button
+                  onClick={() =>
+                    setSiteModal({ competitorId: c.id })
+                  }
                 >
-                  Abrir
-                </a>
+                  + Vincular site
+                </Button>
 
                 <Button
                   variant="secondary"
@@ -269,7 +211,7 @@ export function DashboardPage() {
 
                 <Button
                   variant="danger"
-                  onClick={() => void onDelete(c.id)}
+                  onClick={() => onDelete(c.id)}
                 >
                   Deletar
                 </Button>
@@ -278,8 +220,36 @@ export function DashboardPage() {
             </div>
           );
         })}
-
       </div>
+
+      {/* MODAL SITE 🔥 */}
+      <Modal
+        title="Vincular site"
+        isOpen={!!siteModal}
+        onClose={() => setSiteModal(null)}
+      >
+        <input
+          placeholder="Nome"
+          className="input"
+          value={siteForm.name}
+          onChange={(e) =>
+            setSiteForm({ ...siteForm, name: e.target.value })
+          }
+        />
+
+        <input
+          placeholder="URL"
+          className="input mt-2"
+          value={siteForm.url}
+          onChange={(e) =>
+            setSiteForm({ ...siteForm, url: e.target.value })
+          }
+        />
+
+        <Button className="mt-4 w-full" onClick={handleCreateSite}>
+          Salvar
+        </Button>
+      </Modal>
 
     </div>
   );

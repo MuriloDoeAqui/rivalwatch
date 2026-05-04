@@ -28,58 +28,29 @@ function formatPrice(price: any) {
 }
 
 export function DashboardPage() {
-  const {
-    items,
-    isLoading,
-    error,
-    create,
-    remove,
-    update,
-  } = useCompetitors();
-
-  const { sites, create: createSite } = useSites();
+  const { items = [], isLoading, error } = useCompetitors();
+  const { sites = [], create: createSite } = useSites();
   const { push } = useToast();
 
   const [siteModal, setSiteModal] = useState<any>(null);
   const [siteForm, setSiteForm] = useState({ name: '', url: '' });
 
-  useEffect(() => {
-    if (error) {
-      push({
-        variant: 'error',
-        title: 'Erro no dashboard',
-        description: error,
-      });
-    }
-  }, [error, push]);
-
-  if (isLoading) {
-    return (
-      <div className="text-sm text-zinc-400">
-        Carregando dashboard...
-      </div>
-    );
-  }
-
-  // 🔥 PROTEÇÃO CONTRA UNDEFINED (CORREÇÃO DO ERRO #310)
-  const safeItems = items ?? [];
-  const safeSites = sites ?? [];
-
+  // 🔥 TODOS OS HOOKS SEMPRE AQUI EM CIMA
   const sitesByCompetitor = useMemo(() => {
     const map: Record<string, number> = {};
 
-    (safeSites).forEach((s: any) => {
+    (sites || []).forEach((s: any) => {
       if (!s?.competitor_id) return;
       map[s.competitor_id] = (map[s.competitor_id] || 0) + 1;
     });
 
     return map;
-  }, [safeSites]);
+  }, [sites]);
 
   const sitesGrouped = useMemo(() => {
     const map: Record<string, any[]> = {};
 
-    (safeSites).forEach((s: any) => {
+    (sites || []).forEach((s: any) => {
       if (!s?.competitor_id) return;
 
       if (!map[s.competitor_id]) {
@@ -90,12 +61,30 @@ export function DashboardPage() {
     });
 
     return map;
-  }, [safeSites]);
+  }, [sites]);
+
+  useEffect(() => {
+    if (!error) return;
+
+    push({
+      variant: 'error',
+      title: 'Erro no dashboard',
+      description: error,
+    });
+  }, [error, push]);
+
+  // loading depois dos hooks
+  if (isLoading) {
+    return (
+      <div className="text-sm text-zinc-400">
+        Carregando dashboard...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
 
-      {/* HEADER */}
       <div>
         <h1 className="text-2xl font-bold">RivalWatch Dashboard</h1>
         <p className="text-sm text-zinc-400">
@@ -103,28 +92,26 @@ export function DashboardPage() {
         </p>
       </div>
 
-      {/* LISTA */}
       <div className="space-y-4">
 
-        {safeItems.map((c: any) => {
-          const competitorSites = sitesGrouped[c?.id] || [];
+        {items.map((c: any) => {
+          const competitorSites = sitesGrouped[c.id] || [];
 
           return (
             <div
-              key={c?.id}
+              key={c.id}
               className="rounded-lg border border-zinc-900 bg-zinc-900/40 p-4 space-y-3"
             >
 
-              {/* INFO PRINCIPAL */}
               <div>
-                <p className="font-semibold">{c?.name ?? 'Sem nome'}</p>
+                <p className="font-semibold">{c.name}</p>
 
                 <p className="text-xs text-zinc-500 break-all">
-                  {c?.website ?? '—'}
+                  {c.website}
                 </p>
 
                 <p className="text-[10px] text-zinc-600 mt-1">
-                  Criado em {formatDate(c?.created_at)}
+                  Criado em {formatDate(c.created_at)}
                 </p>
 
                 <p className="text-xs text-indigo-400 mt-2">
@@ -132,32 +119,26 @@ export function DashboardPage() {
                 </p>
               </div>
 
-              {/* SITES */}
               <div className="space-y-2">
                 {competitorSites.length > 0 ? (
                   competitorSites.map((s: any) => (
                     <div
-                      key={s?.id}
+                      key={s.id}
                       className="flex items-center justify-between rounded bg-zinc-950 px-3 py-2 text-xs"
                     >
                       <div>
-                        <div className="font-medium">
-                          {s?.name ?? 'Site'}
-                        </div>
-
+                        <div className="font-medium">{s.name}</div>
                         <div className="text-green-400">
-                          {formatPrice(s?.price)}
+                          {formatPrice(s.price)}
                         </div>
-
                         <div className="text-[10px] text-zinc-500">
-                          {formatDate(s?.last_checked)}
+                          {formatDate(s.last_checked)}
                         </div>
                       </div>
 
                       <a
-                        href={s?.url}
+                        href={s.url}
                         target="_blank"
-                        rel="noopener noreferrer"
                         className="text-indigo-400 hover:underline"
                       >
                         abrir

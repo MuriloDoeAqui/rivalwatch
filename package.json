@@ -3,17 +3,21 @@
   "version": "1.0.0",
   "description": "RivalWatch - Price monitoring platform",
   "private": true,
-  "workspaces": [
-    "frontend",
-    "worker"
-  ],
-  "scripts": {
-    "dev": "npm run dev --workspace=frontend",
-    "build": "npm run build --workspace=frontend",
-    "worker": "npm start --workspace=worker",
-    "check": "npm run check --workspace=worker"
+  "engines": {
+    "node": "24.x"
   },
-  "keywords": ["scraping", "price-monitor", "supabase", "react"],
+  "scripts": {
+    "dev": "cd frontend && npm install && npm run dev",
+    "build": "cd frontend && npm install && npm run build",
+    "worker": "cd worker && npm install && npm start",
+    "check": "cd worker && npm install && npm run check"
+  },
+  "keywords": [
+    "scraping",
+    "price-monitor",
+    "supabase",
+    "react"
+  ],
   "author": "",
   "license": "ISC"
 }

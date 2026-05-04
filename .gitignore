@@ -1,0 +1,56 @@
+# =========================
+# 📦 DEPENDÊNCIAS
+# =========================
+node_modules/
+
+# =========================
+# ⚙️ BUILD / PRODUÇÃO
+# =========================
+dist/
+build/
+.next/
+out/
+
+# =========================
+# 🧠 CACHE
+# =========================
+.cache/
+.vite/
+.vercel/
+*.log
+
+# =========================
+# 🔐 VARIÁVEIS DE AMBIENTE
+# =========================
+.env
+.env.local
+.env.development
+.env.production
+
+# =========================
+# 🧪 TESTES
+# =========================
+coverage/
+
+# =========================
+# 🖥️ SISTEMA OPERACIONAL
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# 💻 EDITORES
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# 🧩 TYPESCRIPT
+# =========================
+*.tsbuildinfo
+
+# =========================
+# 🚀 PUPPETEER (IMPORTANTE)
+# =========================
+# evita subir Chromium local
+.puppeteer/

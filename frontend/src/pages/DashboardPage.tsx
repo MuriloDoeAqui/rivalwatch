@@ -1,6 +1,4 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Button } from '../components/ui/Button';
-import type { CompetitorFormValues } from '../components/competitors/CompetitorForm';
 import { useCompetitors } from '../hooks/useCompetitors';
 import { useSites } from '../hooks/useSites';
 import { useToast } from '../components/ui/Toast';
@@ -19,7 +17,9 @@ function formatDate(iso?: string) {
 }
 
 function formatPrice(price: any) {
-  if (!price || isNaN(Number(price))) return 'Sem preço';
+  if (price === null || price === undefined || price === '' || isNaN(Number(price))) {
+    return 'Sem preço';
+  }
 
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -28,29 +28,17 @@ function formatPrice(price: any) {
 }
 
 export function DashboardPage() {
-  const { items = [], isLoading, error } = useCompetitors();
-  const { sites = [], create: createSite } = useSites();
+  const { items, isLoading, error } = useCompetitors();
+  const { sites } = useSites();
   const { push } = useToast();
 
-  const [siteModal, setSiteModal] = useState<any>(null);
-  const [siteForm, setSiteForm] = useState({ name: '', url: '' });
-
-  // 🔥 TODOS OS HOOKS SEMPRE AQUI EM CIMA
-  const sitesByCompetitor = useMemo(() => {
-    const map: Record<string, number> = {};
-
-    (sites || []).forEach((s: any) => {
-      if (!s?.competitor_id) return;
-      map[s.competitor_id] = (map[s.competitor_id] || 0) + 1;
-    });
-
-    return map;
-  }, [sites]);
+  const safeItems = Array.isArray(items) ? items : [];
+  const safeSites = Array.isArray(sites) ? sites : [];
 
   const sitesGrouped = useMemo(() => {
     const map: Record<string, any[]> = {};
 
-    (sites || []).forEach((s: any) => {
+    safeSites.forEach((s) => {
       if (!s?.competitor_id) return;
 
       if (!map[s.competitor_id]) {
@@ -61,84 +49,101 @@ export function DashboardPage() {
     });
 
     return map;
-  }, [sites]);
+  }, [safeSites]);
 
   useEffect(() => {
-    if (!error) return;
-
-    push({
-      variant: 'error',
-      title: 'Erro no dashboard',
-      description: error,
-    });
+    if (error) {
+      push({
+        variant: 'error',
+        title: 'Erro no dashboard',
+        description: error,
+      });
+    }
   }, [error, push]);
 
-  // loading depois dos hooks
   if (isLoading) {
     return (
-      <div className="text-sm text-zinc-400">
+      <div className="min-h-[200px] flex items-center justify-center text-sm text-zinc-400">
         Carregando dashboard...
       </div>
     );
   }
 
-  return (
-    <div className="space-y-6">
+  if (!safeItems.length) {
+    return (
+      <div className="text-sm text-zinc-500">
+        Nenhum concorrente cadastrado ainda.
+      </div>
+    );
+  }
 
-      <div>
+  return (
+    <div className="space-y-6 max-w-5xl mx-auto">
+
+      {/* HEADER */}
+      <div className="border-b border-zinc-900 pb-4">
         <h1 className="text-2xl font-bold">RivalWatch Dashboard</h1>
         <p className="text-sm text-zinc-400">
           Visão geral do seu SaaS
         </p>
       </div>
 
+      {/* LISTA */}
       <div className="space-y-4">
 
-        {items.map((c: any) => {
+        {safeItems.map((c: any) => {
           const competitorSites = sitesGrouped[c.id] || [];
 
           return (
             <div
               key={c.id}
-              className="rounded-lg border border-zinc-900 bg-zinc-900/40 p-4 space-y-3"
+              className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-5 space-y-3"
             >
 
-              <div>
-                <p className="font-semibold">{c.name}</p>
+              {/* INFO */}
+              <div className="space-y-1">
+                <p className="text-lg font-semibold">{c?.name ?? 'Sem nome'}</p>
 
                 <p className="text-xs text-zinc-500 break-all">
-                  {c.website}
+                  {c?.website ?? '—'}
                 </p>
 
-                <p className="text-[10px] text-zinc-600 mt-1">
-                  Criado em {formatDate(c.created_at)}
+                <p className="text-[11px] text-zinc-600">
+                  Criado em {formatDate(c?.created_at)}
                 </p>
 
-                <p className="text-xs text-indigo-400 mt-2">
+                <p className="text-xs text-indigo-400">
                   {competitorSites.length} site(s) vinculados
                 </p>
               </div>
 
+              {/* SITES */}
               <div className="space-y-2">
+
                 {competitorSites.length > 0 ? (
                   competitorSites.map((s: any) => (
                     <div
                       key={s.id}
-                      className="flex items-center justify-between rounded bg-zinc-950 px-3 py-2 text-xs"
+                      className="flex items-center justify-between rounded-lg bg-zinc-900 px-3 py-2 text-xs"
                     >
-                      <div>
-                        <div className="font-medium">{s.name}</div>
-                        <div className="text-green-400">
-                          {formatPrice(s.price)}
+                      <div className="space-y-1">
+                        <div className="font-medium">
+                          {s?.name ?? 'Sem nome'}
                         </div>
+
+                        <div className="text-green-400">
+                          {formatPrice(s?.price)}
+                        </div>
+
                         <div className="text-[10px] text-zinc-500">
-                          {formatDate(s.last_checked)}
+                          {formatDate(s?.last_checked)}
                         </div>
                       </div>
 
                       <a
-                        href={s.url}
+                        href={s?.url || '#'}
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="text-indigo-400 hover:underline"
                       >
                         abrir
@@ -150,6 +155,7 @@ export function DashboardPage() {
                     Nenhum site vinculado
                   </p>
                 )}
+
               </div>
 
             </div>

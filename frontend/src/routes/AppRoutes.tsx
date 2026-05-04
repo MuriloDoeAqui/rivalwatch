@@ -16,21 +16,16 @@ export function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      {/* PRIVADAS */}
-      <Route
-        path="/app"
-        element={
-          <PrivateRoute>
-            <AppShell />
-          </PrivateRoute>
-        }
-      >
-        {/* Dashboard */}
-        <Route index element={<DashboardPage />} />
+      {/* PRIVADAS (CORRIGIDO COM OUTLET PATTERN) */}
+      <Route element={<PrivateRoute />}>
+        <Route element={<AppShell />}>
+          {/* Dashboard */}
+          <Route path="/app" element={<DashboardPage />} />
 
-        {/* Outras páginas */}
-        <Route path="reports" element={<ReportsPage />} />
-        <Route path="sites" element={<SitesPage />} />
+          {/* Outras páginas */}
+          <Route path="/app/reports" element={<ReportsPage />} />
+          <Route path="/app/sites" element={<SitesPage />} />
+        </Route>
       </Route>
 
       {/* REDIRECTS */}

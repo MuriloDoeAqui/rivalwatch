@@ -1,0 +1,19 @@
+{
+  "name": "rivalwatch-worker",
+  "version": "1.0.0",
+  "description": "RivalWatch price monitoring worker",
+  "main": "worker.js",
+  "type": "module",
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "start": "node worker.js",
+    "check": "node check-config.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.0",
+    "puppeteer": "^23.0.2",
+    "dotenv": "^16.4.5"
+  }
+}

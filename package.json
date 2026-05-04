@@ -9,5 +9,8 @@
     "build": "cd frontend && npm install && npm run build",
     "dev": "cd frontend && npm install && npm run dev",
     "worker": "cd worker && npm install && npm start"
+  },
+  "devDependencies": {
+    "vite": "^8.0.10"
   }
 }

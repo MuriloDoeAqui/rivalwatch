@@ -11,12 +11,13 @@ import { PrivateRoute } from './PrivateRoute';
 export function AppRoutes() {
   return (
     <Routes>
+
       {/* PÚBLICAS */}
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      {/* PRIVADAS */}
+      {/* ROTAS PRIVADAS COM LAYOUT */}
       <Route
         path="/app"
         element={
@@ -25,12 +26,14 @@ export function AppRoutes() {
           </PrivateRoute>
         }
       >
-        {/* Dashboard */}
+
+        {/* DASHBOARD */}
         <Route index element={<DashboardPage />} />
 
-        {/* Outras páginas */}
+        {/* OUTRAS PÁGINAS */}
         <Route path="reports" element={<ReportsPage />} />
         <Route path="sites" element={<SitesPage />} />
+
       </Route>
 
       {/* REDIRECTS */}
@@ -40,6 +43,7 @@ export function AppRoutes() {
 
       {/* FALLBACK */}
       <Route path="*" element={<Navigate to="/" replace />} />
+
     </Routes>
   );
 }

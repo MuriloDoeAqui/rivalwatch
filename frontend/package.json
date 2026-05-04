@@ -1,27 +1,11 @@
 {
-  "name": "rivalwatch-monorepo",
-  "version": "1.0.0",
-  "description": "RivalWatch - Price monitoring platform",
+  "name": "frontend",
   "private": true,
-  "engines": {
-    "node": "24.x"
-  },
-  "workspaces": [
-    "frontend",
-    "worker"
-  ],
+  "version": "1.0.0",
   "scripts": {
-    "dev": "npm run dev --workspace=frontend",
-    "build": "npm run build --workspace=frontend",
-    "worker": "npm start --workspace=worker",
-    "check": "npm run check --workspace=worker"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "keywords": [
-    "scraping",
-    "price-monitor",
-    "supabase",
-    "react"
-  ],
-  "author": "",
-  "license": "ISC"
+  "dependencies": {}
 }

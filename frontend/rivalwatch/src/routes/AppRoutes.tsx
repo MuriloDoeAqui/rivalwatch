@@ -16,7 +16,7 @@ export function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      {/* PRIVADAS COM LAYOUT NOVO */}
+      {/* PROTEGIDAS */}
       <Route
         path="/app"
         element={

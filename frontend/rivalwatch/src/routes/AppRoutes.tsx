@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { AppShell } from '../components/layout/AppShell';
+import { AppLayout } from '../components/layout/AppLayout';
 import { DashboardPage } from '../pages/DashboardPage';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
@@ -11,29 +11,23 @@ import { PrivateRoute } from './PrivateRoute';
 export function AppRoutes() {
   return (
     <Routes>
-
       {/* PÚBLICAS */}
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      {/* ROTAS PRIVADAS COM LAYOUT */}
+      {/* PRIVADAS COM LAYOUT NOVO */}
       <Route
         path="/app"
         element={
           <PrivateRoute>
-            <AppShell />
+            <AppLayout />
           </PrivateRoute>
         }
       >
-
-        {/* DASHBOARD */}
         <Route index element={<DashboardPage />} />
-
-        {/* OUTRAS PÁGINAS */}
         <Route path="reports" element={<ReportsPage />} />
         <Route path="sites" element={<SitesPage />} />
-
       </Route>
 
       {/* REDIRECTS */}
@@ -43,7 +37,6 @@ export function AppRoutes() {
 
       {/* FALLBACK */}
       <Route path="*" element={<Navigate to="/" replace />} />
-
     </Routes>
   );
 }

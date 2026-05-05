@@ -7,10 +7,8 @@ export function PrivateRoute() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100">
-        <div className="mx-auto flex min-h-screen max-w-4xl items-center justify-center px-6">
-          <div className="text-sm text-zinc-400">Carregando sessão…</div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center text-zinc-400">
+        Carregando sessão...
       </div>
     );
   }

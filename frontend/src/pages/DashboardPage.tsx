@@ -69,23 +69,21 @@ export function DashboardPage() {
     );
   }
 
-  if (!safeItems.length) {
-    return (
-      <div className="text-sm text-zinc-500">
-        Nenhum concorrente cadastrado ainda.
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
 
-      {/* HEADER */}
-      <div className="border-b border-zinc-900 pb-4">
-        <h1 className="text-2xl font-bold">RivalWatch Dashboard</h1>
-        <p className="text-sm text-zinc-400">
-          Visão geral do seu SaaS
-        </p>
+      {/* HEADER + AÇÕES */}
+      <div className="flex items-center justify-between border-b border-zinc-900 pb-4">
+        <div>
+          <h1 className="text-2xl font-bold">RivalWatch Dashboard</h1>
+          <p className="text-sm text-zinc-400">
+            Visão geral do seu SaaS
+          </p>
+        </div>
+
+        <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg">
+          + Adicionar concorrente
+        </button>
       </div>
 
       {/* LISTA */}
@@ -97,25 +95,44 @@ export function DashboardPage() {
           return (
             <div
               key={c.id}
-              className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-5 space-y-3"
+              className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-5 space-y-4"
             >
 
-              {/* INFO */}
-              <div className="space-y-1">
-                <p className="text-lg font-semibold">{c?.name ?? 'Sem nome'}</p>
+              {/* TOPO DO CARD */}
+              <div className="flex justify-between items-start">
 
-                <p className="text-xs text-zinc-500 break-all">
-                  {c?.website ?? '—'}
-                </p>
+                <div className="space-y-1">
+                  <p className="text-lg font-semibold">{c?.name ?? 'Sem nome'}</p>
 
-                <p className="text-[11px] text-zinc-600">
-                  Criado em {formatDate(c?.created_at)}
-                </p>
+                  <p className="text-xs text-zinc-500 break-all">
+                    {c?.website ?? '—'}
+                  </p>
 
-                <p className="text-xs text-indigo-400">
-                  {competitorSites.length} site(s) vinculados
-                </p>
+                  <p className="text-[11px] text-zinc-600">
+                    Criado em {formatDate(c?.created_at)}
+                  </p>
+
+                  <p className="text-xs text-indigo-400">
+                    {competitorSites.length} site(s) vinculados
+                  </p>
+                </div>
+
+                {/* BOTÕES */}
+                <div className="flex gap-2">
+                  <button className="text-xs bg-zinc-800 hover:bg-zinc-700 px-3 py-1 rounded">
+                    Editar
+                  </button>
+
+                  <button className="text-xs bg-red-600 hover:bg-red-500 px-3 py-1 rounded">
+                    Excluir
+                  </button>
+                </div>
               </div>
+
+              {/* BOTÃO VINCULAR */}
+              <button className="text-xs bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded">
+                + Vincular site
+              </button>
 
               {/* SITES */}
               <div className="space-y-2">

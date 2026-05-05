@@ -16,13 +16,10 @@ export function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      {/* PRIVADAS (CORRIGIDO COM OUTLET PATTERN) */}
+      {/* PRIVADAS */}
       <Route element={<PrivateRoute />}>
         <Route element={<AppShell />}>
-          {/* Dashboard */}
           <Route path="/app" element={<DashboardPage />} />
-
-          {/* Outras páginas */}
           <Route path="/app/reports" element={<ReportsPage />} />
           <Route path="/app/sites" element={<SitesPage />} />
         </Route>

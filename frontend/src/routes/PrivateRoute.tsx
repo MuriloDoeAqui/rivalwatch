@@ -1,7 +1,11 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
-export function PrivateRoute() {
+type Props = {
+  children: React.ReactNode;
+};
+
+export function PrivateRoute({ children }: Props) {
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
@@ -17,5 +21,5 @@ export function PrivateRoute() {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  return <Outlet />;
+  return <>{children}</>;
 }

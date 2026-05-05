@@ -1,23 +1,15 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useCompetitors } from '../hooks/useCompetitors';
 import { useSites } from '../hooks/useSites';
 import { useToast } from '../components/ui/Toast';
 
 function formatDate(iso?: string) {
   if (!iso) return '—';
-
-  try {
-    return new Intl.DateTimeFormat('pt-BR', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
+  return new Date(iso).toLocaleString('pt-BR');
 }
 
 function formatPrice(price: any) {
-  if (price === null || price === undefined || price === '' || isNaN(Number(price))) {
+  if (price === null || price === undefined || isNaN(Number(price))) {
     return 'Sem preço';
   }
 
@@ -28,159 +20,181 @@ function formatPrice(price: any) {
 }
 
 export function DashboardPage() {
-  const { items, isLoading, error } = useCompetitors();
-  const { sites } = useSites();
+  // ✅ NOMES CORRETOS DOS HOOKS
+  const { items, remove } = useCompetitors();
+  const { sites, create, remove: removeSite } = useSites();
   const { push } = useToast();
 
   const safeItems = Array.isArray(items) ? items : [];
   const safeSites = Array.isArray(sites) ? sites : [];
 
-  const sitesGrouped = useMemo(() => {
+  // ✅ AGRUPAMENTO CORRIGIDO (sem erro de null)
+  const grouped = useMemo(() => {
     const map: Record<string, any[]> = {};
 
-    safeSites.forEach((s) => {
+    safeSites.forEach((s: any) => {
       if (!s?.competitor_id) return;
 
-      if (!map[s.competitor_id]) {
-        map[s.competitor_id] = [];
+      const key = String(s.competitor_id);
+
+      if (!map[key]) {
+        map[key] = [];
       }
 
-      map[s.competitor_id].push(s);
+      map[key].push(s);
     });
 
     return map;
   }, [safeSites]);
 
-  useEffect(() => {
-    if (error) {
-      push({
-        variant: 'error',
-        title: 'Erro no dashboard',
-        description: error,
-      });
-    }
-  }, [error, push]);
+  // ===== AÇÕES =====
 
-  if (isLoading) {
-    return (
-      <div className="min-h-[200px] flex items-center justify-center text-sm text-zinc-400">
-        Carregando dashboard...
-      </div>
-    );
+  async function handleDeleteCompetitor(id: string) {
+    if (!confirm('Deletar concorrente?')) return;
+
+    await remove(id);
+
+    push({
+      title: 'Concorrente deletado',
+      variant: 'success',
+    });
+  }
+
+  async function handleAddSite(competitorId: string) {
+    const name = prompt('Nome do site:');
+    const url = prompt('URL:');
+
+    if (!name || !url) return;
+
+    await create({
+      name,
+      url,
+      competitorId: competitorId, // ✅ nome correto
+    });
+
+    push({
+      title: 'Site criado',
+      variant: 'success',
+    });
+  }
+
+  async function handleDeleteSite(id: string) {
+    if (!confirm('Remover site?')) return;
+
+    await removeSite(id);
+
+    push({
+      title: 'Site removido',
+      variant: 'success',
+    });
   }
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
 
-      {/* HEADER + AÇÕES */}
-      <div className="flex items-center justify-between border-b border-zinc-900 pb-4">
-        <div>
-          <h1 className="text-2xl font-bold">RivalWatch Dashboard</h1>
-          <p className="text-sm text-zinc-400">
-            Visão geral do seu SaaS
-          </p>
+      {/* HEADER */}
+      <div>
+        <h1 className="text-2xl font-bold">RivalWatch Dashboard</h1>
+        <p className="text-sm text-zinc-400">
+          Visão geral do seu SaaS
+        </p>
+      </div>
+
+      {/* INSIGHTS */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-zinc-900 p-4 rounded">
+          <p className="text-xs text-zinc-400">Concorrentes</p>
+          <p className="text-xl font-bold">{safeItems.length}</p>
         </div>
 
-        <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg">
-          + Adicionar concorrente
-        </button>
+        <div className="bg-zinc-900 p-4 rounded">
+          <p className="text-xs text-zinc-400">Sites</p>
+          <p className="text-xl font-bold">{safeSites.length}</p>
+        </div>
+
+        <div className="bg-zinc-900 p-4 rounded">
+          <p className="text-xs text-zinc-400">Com preço</p>
+          <p className="text-xl font-bold">
+            {safeSites.filter((s: any) => (s as any)?.price).length}
+          </p>
+        </div>
       </div>
 
       {/* LISTA */}
-      <div className="space-y-4">
+      {safeItems.map((c: any) => {
+        const compSites = grouped[String(c.id)] || [];
 
-        {safeItems.map((c: any) => {
-          const competitorSites = sitesGrouped[c.id] || [];
+        return (
+          <div key={c.id} className="bg-zinc-900 p-5 rounded space-y-3">
 
-          return (
-            <div
-              key={c.id}
-              className="rounded-xl border border-zinc-900 bg-zinc-950/40 p-5 space-y-4"
-            >
+            {/* INFO */}
+            <div>
+              <h2 className="font-semibold">{c?.name ?? 'Sem nome'}</h2>
+              <p className="text-xs text-zinc-400">{c?.website ?? '—'}</p>
+              <p className="text-xs text-zinc-500">
+                {formatDate(c?.created_at)}
+              </p>
+            </div>
 
-              {/* TOPO DO CARD */}
-              <div className="flex justify-between items-start">
-
-                <div className="space-y-1">
-                  <p className="text-lg font-semibold">{c?.name ?? 'Sem nome'}</p>
-
-                  <p className="text-xs text-zinc-500 break-all">
-                    {c?.website ?? '—'}
-                  </p>
-
-                  <p className="text-[11px] text-zinc-600">
-                    Criado em {formatDate(c?.created_at)}
-                  </p>
-
-                  <p className="text-xs text-indigo-400">
-                    {competitorSites.length} site(s) vinculados
-                  </p>
-                </div>
-
-                {/* BOTÕES */}
-                <div className="flex gap-2">
-                  <button className="text-xs bg-zinc-800 hover:bg-zinc-700 px-3 py-1 rounded">
-                    Editar
-                  </button>
-
-                  <button className="text-xs bg-red-600 hover:bg-red-500 px-3 py-1 rounded">
-                    Excluir
-                  </button>
-                </div>
-              </div>
-
-              {/* BOTÃO VINCULAR */}
-              <button className="text-xs bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded">
-                + Vincular site
+            {/* BOTÕES */}
+            <div className="flex gap-3 text-xs">
+              <button
+                onClick={() => handleAddSite(c.id)}
+                className="text-indigo-400 hover:underline"
+              >
+                + site
               </button>
 
-              {/* SITES */}
-              <div className="space-y-2">
-
-                {competitorSites.length > 0 ? (
-                  competitorSites.map((s: any) => (
-                    <div
-                      key={s.id}
-                      className="flex items-center justify-between rounded-lg bg-zinc-900 px-3 py-2 text-xs"
-                    >
-                      <div className="space-y-1">
-                        <div className="font-medium">
-                          {s?.name ?? 'Sem nome'}
-                        </div>
-
-                        <div className="text-green-400">
-                          {formatPrice(s?.price)}
-                        </div>
-
-                        <div className="text-[10px] text-zinc-500">
-                          {formatDate(s?.last_checked)}
-                        </div>
-                      </div>
-
-                      <a
-                        href={s?.url || '#'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-indigo-400 hover:underline"
-                      >
-                        abrir
-                      </a>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-zinc-500 italic">
-                    Nenhum site vinculado
-                  </p>
-                )}
-
-              </div>
-
+              <button
+                onClick={() => handleDeleteCompetitor(c.id)}
+                className="text-red-400 hover:underline"
+              >
+                deletar
+              </button>
             </div>
-          );
-        })}
 
-      </div>
+            {/* SITES */}
+            {compSites.length > 0 ? (
+              compSites.map((s: any) => (
+                <div
+                  key={s.id}
+                  className="flex justify-between bg-zinc-800 p-2 rounded text-xs"
+                >
+                  <div>
+                    <p>{s?.name ?? 'Sem nome'}</p>
+                    <p className="text-green-400">
+                      {formatPrice((s as any)?.price)}
+                    </p>
+                  </div>
 
+                  <div className="flex gap-2">
+                    <a
+                      href={s?.url || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-400"
+                    >
+                      abrir
+                    </a>
+
+                    <button
+                      onClick={() => handleDeleteSite(s.id)}
+                      className="text-red-400"
+                    >
+                      remover
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-zinc-500">
+                Nenhum site vinculado
+              </p>
+            )}
+
+          </div>
+        );
+      })}
     </div>
   );
 }

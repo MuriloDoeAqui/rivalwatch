@@ -17,12 +17,17 @@ export function AppRoutes() {
       <Route path="/register" element={<RegisterPage />} />
 
       {/* PRIVADAS */}
-      <Route element={<PrivateRoute />}>
-        <Route element={<AppShell />}>
-          <Route path="/app" element={<DashboardPage />} />
-          <Route path="/app/reports" element={<ReportsPage />} />
-          <Route path="/app/sites" element={<SitesPage />} />
-        </Route>
+      <Route
+        path="/app"
+        element={
+          <PrivateRoute>
+            <AppShell />
+          </PrivateRoute>
+        }
+      >
+        <Route index element={<DashboardPage />} />
+        <Route path="reports" element={<ReportsPage />} />
+        <Route path="sites" element={<SitesPage />} />
       </Route>
 
       {/* REDIRECTS */}
